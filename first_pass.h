@@ -206,3 +206,65 @@ int is_dot_data(char *line) {
   }
   return 1; /* it is a '.data' line */
 }
+
+/*
+get 2's complement negative of the number
+
+Arguments:
+  num - number to get negative of
+
+Returns:
+  2's complement negative of num
+*/
+int get_negative(int num) {
+  
+}
+
+/*
+gets the numbers from a '.data' line
+
+Argumenst:
+  line - pointer t the line
+  data - the data memory section of the program
+  dc - data counter
+*/
+char *get_number_data(char *line, data_memory data[], int *dc) {
+  int need_comma, sign, num;
+  char number_text[MAX_STRING_LEN], *temp;
+
+  line = skip_white_space(line); /* skip white space before '.data' */
+  while (isalpha(*line) || *line == '.') line++; /* skip the '.data' part of the line */
+
+  while (*line != '\0') {
+    temp = number_text;
+    sign = 1;
+    line = skip_white_space(line);
+    if (*line == '\0') break; /* if we reached the end of the line break out of loop */
+    if (need_comma) {
+      if(*line != ',') return NULL; /* case of a missing comma, return NULL to signify error */
+      line++; /* skip comma */
+      line = skip_white_space(line); /* skip white space to next element */
+    }
+    if (*line == '-') { /* negative number */
+      sign = -1;
+      line++;
+    }
+    if (*line == '+') { /* positive number */
+      sign = 1;
+      line++;
+    }
+    while(isdigit(*line)) {
+      *temp++ = *line++; /* copy number */
+    }
+    *temp = '\0'; /* signal end of string */
+    num = atoi(number_text);
+    if (num == 0 && number_text[0] != '0') return NULL; /* case of atoi failing, note that we need to make sure that the value of the string isn't truly 0 */
+    if (sign == -1) {
+      data[*dc++].data = get_negative(num); /* get 2's complement negative since it's not surely the same as computer negative */
+    }
+    else { /* sign == 1 case */
+      data[*dc++].data = num;
+    }
+  }
+  return line;
+}
