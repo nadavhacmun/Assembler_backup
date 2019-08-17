@@ -154,6 +154,37 @@ int is_dot_string(char *line) {
 }
 
 /*
+copies the string from the line into string
+
+Argumenst:
+  line - pointer t the line
+  string - where the string will be stored
+*/
+char *get_string_data(char *line, char *string) {
+  int last_qoute, i = 0;
+  char *line_ptr;
+
+  line = skip_white_space(line); /* skip white space before '.string' part of line */
+  while (*line == '.' || isalpha(*line)) line++; /* skip '.string' part of the line */
+  line = skip_white_space(line); /* skip white space between '.string' and argument */
+
+  if (*line != '\"') return NULL; /* if we are missing an opening " return NULL */
+  line++; /* skip the " */
+  line_ptr = line;
+  while (*line_ptr != '\0') { /* find last qoute of line */
+    if (*line_ptr == '\"') last_qoute = i; /* if we found another qoute we set it to be the new last one */
+    i++; /* increment i (i just counts how many chars have passed) */
+    line_ptr++; /* get to the next char in line */
+  }
+  while (last_qoute != 0) { /* copy string */
+    *string++ = *line++;
+    last_qoute--;
+  }
+
+  return ++line; /* skip the last qoute */
+}
+
+/*
 checks if the line is a ".data" line
 
 Arguments:
