@@ -17,7 +17,7 @@ int is_macro(char *line) {
   line = skip_white_space(line); /* skip white space in start of line */
   temp = is_macro; /* set temp to point to the start of ".define" */
   while (!isspace(*line)) { /* while we the word isn't over yet */
-    if (*line != *temp) return 0; /* if the chars don't match it's not a macro */
+    if (*line++ != *temp++) return 0; /* if the chars don't match it's not a macro */
   }
 
   return 1; /* if it is a macro */
@@ -88,8 +88,45 @@ char *get_label(char *line, char *label) {
 }
 
 /*
-checks if the line is a data instruction
+checks if the line is a ".string" line
+
+Arguments:
+  line - pointer to the line
+
+Returns:
+  1 - if it is a '.string' line
+  0 - if it is not a '.string' line
 */
-int is_data_instuction(char *line) {
-  
+int is_dot_string(char *line) {
+  line = skip_white_space(line); /* skip white space before ".string" */
+  char *temp; /* temp will be used to point to the helper strings */
+  char dot_string[] = ".string"; /* pattern for a .string line */
+
+  temp = dot_string; /* temp now points to start of dot_string */
+  while(!isspace(*line)) { /* while the current string in the line is not over */
+    if(*line++ != *temp++) return 0; /* if it's different from the pattern it's not a '.string' line */
+  }
+  return 1; /* it is a '.string' line */
+}
+
+/*
+checks if the line is a ".data" line
+
+Arguments:
+  line - pointer to the line
+
+Returns:
+  1 - if it is a '.data' line
+  0 - if it is not a '.data' line
+*/
+int is_dot_data(char *line) {
+  line = skip_white_space(line); /* skip white space before ".data" */
+  char *temp; /* temp will be used to point to the helper strings */
+  char dot_data[] = ".data"; /* pattern for a .data line */
+
+  temp = dot_data; /* temp now points to start of dot_data */
+  while(!isspace(*line)) { /* while the current string in the line is not over */
+    if(*line++ != *temp++) return 0; /* if it's different from the pattern it's not a '.data' line */
+  }
+  return 1; /* it is a '.data' line */
 }
