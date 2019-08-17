@@ -50,3 +50,46 @@ char *get_macro(char *line, char *name, char *val) {
 
   return line;
 }
+
+/*
+checks if the line has a label attched to it
+
+Arguments:
+  line - pointer to the line
+
+Returns:
+  1 - if line has a label
+  0 - if line has no label
+*/
+int has_label(char *line) {
+  line = skip_white_space(line); /* skip white space at the start of the line */
+  while(isalpha(*line)) line++; /* we don't care what the label is yet we are just checking if it exists */
+  if (*line == ':') return 1; /* a label looks like "string:" where string is any string, we are cheking for the ':' after skipping the string, if it has a ':' it's a label so we return 1 */
+
+  return 0; /* no label */
+}
+
+/*
+gets the label from a line
+
+Arguments:
+  line - pointer to the line
+  label - where the label will be stored
+
+Returns:
+  pointer to line after label (also after the ':' the is right after the label)
+*/
+char *get_label(char *line, char *label) {
+  line = skip_white_space(line); /* skip white space at start of line */
+  while(isalpha(*line)) *label++ = *line++; /* copy label */
+  *line = '\0'; /* signal end of string */
+
+  return ++line /* skip the ':' */
+}
+
+/*
+checks if the line is a data instruction
+*/
+int is_data_instuction(char *line) {
+  
+}
