@@ -1,6 +1,49 @@
 #include "table.h"
 
 /*
+defining PSW
+*/
+typedef struct {
+  unsigned int LABEL_DEFINITION: 1;
+  unsigned int HAS_ERROR: 1;
+} PSW;
+
+/*
+Unit of memory in the code section
+it can either function as a space to encode a command line or it can function to encode an operand of a command.
+is_command tells is 1 if a command is encoded in the cell and 0 if it's an operand.
+
+Bit structure for command:
+  0 - 1 (ARE): external, relocateable or absolute
+  2 - 3 (dest_op) : addressing type of the destination operand
+  4 - 5 (source_op) : addressing type of the source operand
+  6 - 9 (opcode) : number representing the command
+  10 - 13 (unused) : unused bits
+
+Bit structure for operand:
+  0 - 1 (ARE): external, relocateable or absolute
+  2 - 13 (operand) : encoding the data of the operand
+
+*/
+typedef struct {
+  unsigned int unused: 4;
+  unsigned int opcode: 4;
+  unsigned int source_op: 2;
+  unsigned int dest_op: 2;
+  unsigned int ARE: 2;
+  unsigned int is_command: 1;
+  unsigned int operand: 12;
+} code_memory;
+
+/*
+Unit of memory in the data section
+it's simply 14 bits of storage
+*/
+typedef struct {
+  unsigned int data: 14;
+} data_memory;
+
+/*
 checks if given line is a macro
 
 Arguments:
@@ -84,7 +127,7 @@ char *get_label(char *line, char *label) {
   while(isalpha(*line)) *label++ = *line++; /* copy label */
   *line = '\0'; /* signal end of string */
 
-  return ++line /* skip the ':' */
+  return ++line; /* skip the ':' */
 }
 
 /*
@@ -98,9 +141,10 @@ Returns:
   0 - if it is not a '.string' line
 */
 int is_dot_string(char *line) {
-  line = skip_white_space(line); /* skip white space before ".string" */
   char *temp; /* temp will be used to point to the helper strings */
   char dot_string[] = ".string"; /* pattern for a .string line */
+
+  line = skip_white_space(line); /* skip white space before ".string" */
 
   temp = dot_string; /* temp now points to start of dot_string */
   while(!isspace(*line)) { /* while the current string in the line is not over */
@@ -120,9 +164,10 @@ Returns:
   0 - if it is not a '.data' line
 */
 int is_dot_data(char *line) {
-  line = skip_white_space(line); /* skip white space before ".data" */
   char *temp; /* temp will be used to point to the helper strings */
   char dot_data[] = ".data"; /* pattern for a .data line */
+
+  line = skip_white_space(line); /* skip white space before ".data" */
 
   temp = dot_data; /* temp now points to start of dot_data */
   while(!isspace(*line)) { /* while the current string in the line is not over */
