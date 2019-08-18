@@ -158,9 +158,10 @@ copies the string from the line into string
 
 Argumenst:
   line - pointer t the line
-  string - where the string will be stored
+  data - data memory section of the program
+  dc - pointer to data counter
 */
-char *get_string_data(char *line, char *string) {
+char *get_string_data(char *line, data_memory data[], int *dc) {
   int last_qoute, i = 0;
   char *line_ptr;
 
@@ -177,9 +178,10 @@ char *get_string_data(char *line, char *string) {
     line_ptr++; /* get to the next char in line */
   }
   while (last_qoute != 0) { /* copy string */
-    *string++ = *line++;
+    data[*dc++].data = *line++;
     last_qoute--;
   }
+  data[*dc++].data = '\0'; /* signal end of string */
 
   return ++line; /* skip the last qoute */
 }
@@ -217,7 +219,7 @@ Returns:
   2's complement negative of num
 */
 int get_negative(int num) {
-  
+
 }
 
 /*
@@ -227,10 +229,12 @@ Argumenst:
   line - pointer t the line
   data - the data memory section of the program
   dc - data counter
+  table - the symbol table
 */
-char *get_number_data(char *line, data_memory data[], int *dc) {
+char *get_number_data(char *line, data_memory data[], int *dc, symbol_table table[]) {
   int need_comma, sign, num;
   char number_text[MAX_STRING_LEN], *temp;
+  symbol_table *node; /* will be used to lookup macro in the symbol table */
 
   line = skip_white_space(line); /* skip white space before '.data' */
   while (isalpha(*line) || *line == '.') line++; /* skip the '.data' part of the line */
@@ -253,17 +257,29 @@ char *get_number_data(char *line, data_memory data[], int *dc) {
       sign = 1;
       line++;
     }
-    while(isdigit(*line)) {
-      *temp++ = *line++; /* copy number */
+    if (isalpha(*line)) { /* case of a macro */
+      while(isalpha(*line)) {
+        *temp++ = *line++; /* copy name of macro */
+      }
+      *temp = '\0'; /* signal end of string */
+      node = lookup(temp, table);
+      if (node == NULL) return NULL; /* macro not found */
+      if (node->type != DOT_MACRO) return NULL; /* not a macro */
+      data[*dc++].data = node->value; /* copy the value of the macro into data */
     }
-    *temp = '\0'; /* signal end of string */
-    num = atoi(number_text);
-    if (num == 0 && number_text[0] != '0') return NULL; /* case of atoi failing, note that we need to make sure that the value of the string isn't truly 0 */
-    if (sign == -1) {
-      data[*dc++].data = get_negative(num); /* get 2's complement negative since it's not surely the same as computer negative */
-    }
-    else { /* sign == 1 case */
-      data[*dc++].data = num;
+    else { /* literal number */
+      while(isdigit(*line)) {
+        *temp++ = *line++; /* copy number */
+      }
+      *temp = '\0'; /* signal end of string */
+      num = atoi(number_text);
+      if (num == 0 && number_text[0] != '0') return NULL; /* case of atoi failing, note that we need to make sure that the value of the string isn't truly 0 */
+      if (sign == -1) {
+        data[*dc++].data = get_negative(num); /* get 2's complement negative since it's not surely the same as computer negative */
+      }
+      else { /* sign == 1 case */
+        data[*dc++].data = num;
+      }
     }
   }
   return line;
