@@ -398,5 +398,56 @@ int is_valid_command(char *command) {
   else if(strcmp(command, "jsr") == 0) return 13;
   else if(strcmp(command, "rts") == 0) return 14;
   else if(strcmp(command, "stop") == 0) return 15;
-  else return -1;
+  return -1;
+}
+
+/*
+gets the number of arguments a command has
+
+Arguments:
+  command - pointer to the command
+
+Returns:
+  number of arguments if command is valid
+  -1 if command is invalid
+*/
+int get_number_args(char *command) {
+  if(strcmp(command, "mov") == 0) return 0;
+  else if(strcmp(command, "cmp") == 0) return 1;
+  else if(strcmp(command, "add") == 0) return 2;
+  else if(strcmp(command, "sub") == 0) return 3;
+  else if(strcmp(command, "not") == 0) return 4;
+  else if(strcmp(command, "clr") == 0) return 5;
+  else if(strcmp(command, "lea") == 0) return 6;
+  else if(strcmp(command, "inc") == 0) return 7;
+  else if(strcmp(command, "dec") == 0) return 8;
+  else if(strcmp(command, "jmp") == 0) return 9;
+  else if(strcmp(command, "bne") == 0) return 10;
+  else if(strcmp(command, "red") == 0) return 11;
+  else if(strcmp(command, "prn") == 0) return 12;
+  else if(strcmp(command, "jsr") == 0) return 13;
+  else if(strcmp(command, "rts") == 0) return 14;
+  else if(strcmp(command, "stop") == 0) return 15;
+  return -1;
+}
+
+/*
+checks if the addressing type of the argument is instant addressing
+
+Arguments:
+  arg - pointer to the arg
+  table - the symbol table
+
+Returns:
+  1 - type is instant addressing
+  1 - type isn't instant addressing
+*/
+int is_instant(char *arg, symbol_table table[]) {
+  symbol_table *node;
+
+  if (*arg == '#') return 1; /* instant addressing starts like this or is a macro */
+  if ((node = lookup(arg, table)) != NULL) { /* if node isn't null check it's a macro */
+    if (node->type == DOT_MACRO) return 1; /* if it's a macro */
+  }
+  return 0;
 }
