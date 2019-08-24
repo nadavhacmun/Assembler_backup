@@ -451,3 +451,63 @@ int is_instant(char *arg, symbol_table table[]) {
   }
   return 0;
 }
+
+/*
+checks if the addressing type of the argument is direct addressing
+
+Arguments:
+  arg - pointer to the arg
+  table - the symbol table
+
+Returns:
+  1 - type is direct addressing
+  1 - type isn't direct addressing
+*/
+int is_direct(char *arg, symbol_table table[]) {
+  symbol_table *node;
+
+  if ((node = lookup(arg, table)) != NULL) { /* if node isn't null check it's a data or extern */
+    if (node->type == DOT_DATA || node->type == DOT_EXT) return 1; /* if it's a macro */
+  }
+  return 0;
+}
+
+/*
+checks if the addressing type is constant index addressing
+
+Arguments:
+  arg - pointer to the argument
+
+Returns:
+  1 - if addressing type is constant index addressing
+  0 - if addressing type isn't constant index addressing
+*/
+int is_const_idx(char *arg) {
+  while(*arg != '\0') { /* while the argument isn't over */
+    if (*arg == '[') return 1; /* if we find a bracket we have this type of indexing */
+    arg++;
+  }
+
+  return 0;
+}
+
+/*
+checks if the addressing type of the argument is register addressing
+
+Arguments:
+  arg - pointer to the argument
+
+Returns:
+  1 - if the addressing type is register addressing
+  0 - if the addressing type isn't register addressing
+*/
+int is_register(char *arg) {
+  if(*arg == 'r') { /* a register var is of the form 'rx' where x is a digit, we check for this pattern */
+    arg++;
+    if (isdigit(*arg)) {
+      arg++;
+      if (*arg == '\0') return 1; /* matching pattern */
+    }
+  }
+  return 0; /* pattern not matching */
+}
