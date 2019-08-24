@@ -284,3 +284,119 @@ char *get_number_data(char *line, data_memory data[], int *dc, symbol_table tabl
   }
   return line;
 }
+
+/*
+checks if the line is a .extern line
+
+Argumenst:
+  line - pointer to the line
+
+Returns:
+  1 - if it is a .extern line
+  0 - if it isn't a .extern line
+*/
+int is_extern(char *line) {
+  line = skip_white_space(line);
+  char pattern = ".extern"; /* pattern for an external line */
+  char *temp;
+  temp = pattern; /* temp now points to pattern */
+  while(!isspace(*line)) { /* while the current word isn't over */
+    if (*line++ != *temp++) return 0; /* if they don't match return 0 */
+  }
+  return 1; /* they match */
+}
+
+/*
+gets the argument to a .extern line
+
+Arguments:
+  line - pointer to the line
+  arg - pointer to where the argument will be stored
+
+Returns:
+  pointer to the line after the argument
+*/
+char *get_extern_arg(char *line, char *arg) {
+  line = skip_white_space(line); /* skip white space before .extern part of the line */
+  while (*line == '.' || isalpha(*line)) line++; /* skip the .extern part */
+  line = skip_white_space(line); /* skip white space between .extern part the argument */
+
+  while(isalpha(*line)) { /* while the argument isn't over */
+    *arg++ = *line++; /* copy current letter and increment */
+  }
+  *arg = '\0'; /* end of string */
+
+  return line;
+}
+
+/*
+checks if the line is a .entry line
+
+Argumenst:
+  line - pointer to the line
+
+Returns:
+  1 - if it is a .entry line
+  0 - if it isn't a .entry line
+*/
+int is_entry(char *line) {
+  line = skip_white_space(line);
+  char pattern = ".entry"; /* pattern for an entry line */
+  char *temp;
+  temp = pattern; /* temp now points to pattern */
+  while(!isspace(*line)) { /* while the current word isn't over */
+    if (*line++ != *temp++) return 0; /* if they don't match return 0 */
+  }
+  return 1; /* they match */
+}
+
+/*
+gets the command of the line
+
+Arguments:
+  line - pointer to the line
+  command - pointer to where the command will be copied
+
+Returns:
+  pointer to the line after the command
+*/
+char *get_command(char *line, char *command) {
+  line = skip_white_space(line); /* skip white space before name of command */
+
+  while(isalpha(*line)) { /* while the command isn't over */
+    *command++ = *line++; /* copy current letter of command */
+  }
+  *command = '\0';
+
+  return line;
+}
+
+/*
+checks if the command is a valid one
+
+Arguments:
+  command - pointer to the command
+
+Returns:
+  -1 - if it's not valid
+  opcode of command if it is valid (opcode is described in the instructions)
+*/
+int is_valid_command(char *command) {
+  if(strcmp(command, "mov") == 0) return 0;
+  else if(strcmp(command, "cmp") == 0) return 1;
+  else if(strcmp(command, "add") == 0) return 2;
+  else if(strcmp(command, "sub") == 0) return 3;
+  else if(strcmp(command, "not") == 0) return 4;
+  else if(strcmp(command, "clr") == 0) return 5;
+  else if(strcmp(command, "lea") == 0) return 6;
+  else if(strcmp(command, "inc") == 0) return 7;
+  else if(strcmp(command, "dec") == 0) return 8;
+  else if(strcmp(command, "jmp") == 0) return 9;
+  else if(strcmp(command, "bne") == 0) return 10;
+  else if(strcmp(command, "red") == 0) return 11;
+  else if(strcmp(command, "prn") == 0) return 12;
+  else if(strcmp(command, "jsr") == 0) return 13;
+  else if(strcmp(command, "rts") == 0) return 14;
+  else if(strcmp(command, "stop") == 0) return 15;
+  else return -1;
+}
