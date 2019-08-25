@@ -1,5 +1,7 @@
 #include "table.h"
 
+#define LINE_TOO_LONG -2 /* read_line returns -2 if the line is too long */
+
 /*
 defining PSW
 */
@@ -510,4 +512,58 @@ int is_register(char *arg) {
     }
   }
   return 0; /* pattern not matching */
+}
+
+/*
+function implementing the first pass of the assembler
+
+Arguments:
+  f - pointer to the file
+  table - symbol table of the program
+  psw - pointer to psw
+  data - the data memory section of the program
+  code - the code memory section of the program
+  is_init - an array the same size as hashtab, the ith element is 1 if hashtab[i] is initialized and is 0 otherwise
+  ic - pointer to ic
+  dc - pointer to dc
+*/
+int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code_memory code[], int is_init[], int *ic, int *dc) {
+  char line_arr[MAX_LINE_LEN], *linestring1, [MAX_STRING_LEN], string2[MAX_STRING_LEN], string3[MAX_STRING_LEN]; /* string1 string2 and string3 will be used to store temporary string data */
+  int curr_line = 0, val1;
+
+
+  while ((val1 = read_line(f, line)) != EOF) { /* while file isn't over */
+    line = line_arr; /* line now points to where the line will be stored */
+    ++curr_line; /* increment line count */
+    if (val1 == LINE_TOO_LONG) { /* if the line is too long to be read */
+      psw->HAS_ERROR = 1; /* notify we have error */
+      printf("Error: line too long, Line number: %d\n", curr_line); /* print error */
+      continue; /* continue to next line since this one couldn't be read */
+    }
+
+    if(is_macro(line)) { /* case of a macro */
+      line = get_macro(line, string1, string2); /* string1 now stores the name of the macro while string2 now stored it's value */
+      val1 = atoi(string2) /* convert value to integer from string */
+      if (lookup(string1, table) == NULL) { /* if not found */
+        install(string1, val1, DOT_MACRO, table, is_init);
+      }
+      else {
+        psw->HAS_ERROR = 1; /* if the name of the macro is already in the table we have an error */
+        printf("Error: macro name already in table, Line number: %d\n", curr_line); /* print error */
+      }
+    }
+
+    if(has_label(line)) {
+      line = get_label(line, string1); /* string1 now contains the label */
+      psw->LABEL_DEFINITION = 1; /* notify psw of a label definition */
+    }
+
+    if (is_dot_string(line)) {
+
+    }
+
+    if (is_dot_data(line)) {
+
+    }
+  }
 }
