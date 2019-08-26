@@ -2,6 +2,14 @@
 
 #define LINE_TOO_LONG -2 /* read_line returns -2 if the line is too long */
 #define STARTING_INDEX_CODE 100 /* this is where we start storing information in memory */
+#define INSTANT 0 /* instant addressing */
+#define DIRECT 1 /* direct addressing */
+#define CONST_IDX 2 /* constant inex addressing */
+#define REGISTER 3 /* register addressing */
+
+
+
+
 
 /*
 defining PSW
@@ -488,6 +496,97 @@ int is_register(char *arg) {
 }
 
 /*
+
+*/
+char *get_operands(char *line, int num_args, char *op1, char *op2) {
+  if (num_args == 0);
+  if (num_args == 1) {
+    line = skip_white_space(line);
+    while(isalpha(*line)) {
+      *op1++ = *line++; /* copy argument */
+    }
+    *op1 = '\0';
+  }
+  if (num_args == 2) {
+    line = skip_white_space(line);
+    while(isalpha(*line)) {
+      *op1++ = *line++; /* copy argument */
+    }
+    *op1 = '\0';
+    line = skip_white_space(line); /* skip white space before ',' */
+    ++line; /* skip ',' */
+    line = skip_white_space(line); /* skip white space between ',' and argument */
+    while(isalpha(*line)) {
+      *op2++ = *line++; /* copy argument */
+    }
+    *op2 = '\0';
+  }
+
+  return line;
+}
+
+/*
+returns the type of the operand
+
+Arguments:
+  operand - pointer to the operand
+  table - symbol table of the program
+
+Returns:
+  REGISTER - when operand's addressing type is register addressing
+  DIRECT - when operand's addressing type is direct addressing
+  CONST_IDX - when operand's addressing type is constant index addressing
+  INSTANT - when operand's addressing type is instant addressing
+*/
+int get_operand_type(char *operand, symbol_table table[]) {
+  if(is_register(operand)) return REGISTER;
+  if(is_direct(operand, table)) return DIRECT;
+  if(is_const_idx(operand)) return CONST_IDX;
+  return INSTANT;
+}
+
+/*
+returns the amount of cells required to encode the operand
+*/
+int get_operand_extra_cells(int operand) {
+  if (operand == REGISTER) return 1;
+  if (operand == DIRECT) return 1;
+  if (operand == CONST_IDX) return 2;
+  return 1; /* INSTANT addressing */
+}
+
+/*
+
+*/
+void build_binary_code(code_memory code[], int *ic, int opcode, int num_args, char *op1, char *op2, symbol_table table[]) {
+  int L = 0;
+  int type1, type2;
+
+  if (num_args == 0) {
+    code[*ic].is_command = 1;
+    code[*ic].opcode = opcode;
+    L++; /* add one cell to L since we are only coding the command */
+  }
+  else if (num_args == 1) { /* if the function only has a single argument */
+    type1 = get_operand_type(op1, table); /* type1 now has the value of the addressing type */
+    code[*ic].source_op = type1;
+    L += get_operand_extra_cells(type1); /* returns amount of cells to code operand */
+  }
+  else {
+    type1 = get_operand_type(op1, table);
+    type2 = get_operand_type(op2, table);
+    if (type1 == REGISTER && type2 == REGISTER) L++; /* special case when both operands are register */
+    else {
+      L += get_operand_extra_cells(type1); /* amount of cells needed to code source operand */
+      L += get_operand_extra_cells(type2); /* amount of cells needed to code destination operand */
+      code[*ic].source_op = type1; /* set value of souce operand */
+      code[*ic].dest_op = type2; /* set value of destination operand */
+    }
+  }
+  *ic += L; /* increment ic */
+}
+
+/*
 function implementing the first pass of the assembler
 
 Arguments:
@@ -501,8 +600,8 @@ Arguments:
   dc - pointer to dc
 */
 int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code_memory code[], int is_init[], int *ic, int *dc) {
-  char line_arr[MAX_LINE_LEN], *line, string1[MAX_STRING_LEN], string2[MAX_STRING_LEN], string3[MAX_STRING_LEN]; /* string1 string2 and string3 will be used to store temporary string data */
-  int curr_line = 0, val1;
+  char line_arr[MAX_LINE_LEN], *line, string1[MAX_STRING_LEN], string2[MAX_STRING_LEN], string3[MAX_STRING_LEN], label[MAX_STRING_LEN]; /* string1 string2 string3 will be used to store temporary string data */
+  int curr_line = 0, val1, val2;
 
 
   while ((val1 = read_line(f, line)) != EOF) { /* while file isn't over */
@@ -528,18 +627,18 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
     }
 
     if(has_label(line)) {
-      line = get_label(line, string3); /* string3 now contains the label */
+      line = get_label(line, label); /* get the label */
       psw->LABEL_DEFINITION = 1; /* notify psw of a label definition */
     }
 
     if (is_dot_string(line)) {
       if (psw->LABEL_DEFINITION) { /* if we have a label definition */
-        if (lookup(string3, table) != NULL) { /* if the label is already in the table */
+        if (lookup(label, table) != NULL) { /* if the label is already in the table */
           psw->HAS_ERROR = 1; /* turn on error */
-          printf("Error: label already defined, \"%s\", Line number: %d\n", string3, curr_line); /* print error */
+          printf("Error: label already defined, \"%s\", Line number: %d\n", label, curr_line); /* print error */
         }
         else {
-          install(string3, *dc, DOT_DATA, table, is_init); /* install node in table */
+          install(label, *dc, DOT_DATA, table, is_init); /* install node in table */
         }
       }
       line = get_string_data(line, data, dc);
@@ -548,12 +647,12 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
 
     if (is_dot_data(line)) {
       if (psw->LABEL_DEFINITION) { /* if we have a label definition */
-        if (lookup(string3, table) != NULL) { /* if the label is already in the table */
+        if (lookup(label, table) != NULL) { /* if the label is already in the table */
           psw->HAS_ERROR = 1; /* turn on error */
-          printf("Error: label already defined, \"%s\", Line number: %d\n", string3, curr_line); /* print error */
+          printf("Error: label already defined, \"%s\", Line number: %d\n", label, curr_line); /* print error */
         }
         else {
-          install(string3, *dc, DOT_DATA, table, is_init); /* install node in table */
+          install(label, *dc, DOT_DATA, table, is_init); /* install node in table */
         }
     }
     line = get_number_data(line, data, dc, table); /* get all numbers and store them in the data section */
@@ -571,12 +670,12 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
   }
   /* the only remaining case if of a command, so we are dealing with a command */
   if (psw->LABEL_DEFINITION) { /* if we have a label */
-    if (lookup(string3, table) != NULL) { /* if the label is already in the table */
+    if (lookup(label, table) != NULL) { /* if the label is already in the table */
       psw->HAS_ERROR = 1;
-      printf("Error: Label \"%s\" already defined, Line number: %d\n", string3, curr_line);
+      printf("Error: Label \"%s\" already defined, Line number: %d\n", label, curr_line);
     }
     else {
-      install(string3, *ic + STARTING_INDEX_CODE, DOT_CODE, table, is_init);
+      install(label, *ic + STARTING_INDEX_CODE, DOT_CODE, table, is_init);
     }
   }
   line = get_command(line, string1);
@@ -585,5 +684,13 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
     printf("Error: invalid command name, Line number: %d\n", curr_line);
     continue; /* can't do anything more on this line so we go to the next one */
   }
-}
+  val2 = get_number_args(string1);
+  get_operands(line, val2, string2, string3);
+  build_binary_code(code, ic, val1, val2, string2, string3, table);
+  }
+  if (psw->HAS_ERROR) {
+    return -1; /* signal first pass had an error */
+  }
+  correct_data_index(*ic + STARTING_INDEX_CODE, table, is_init);
+  return 0; /* succsess */
 }
