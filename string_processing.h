@@ -15,14 +15,14 @@ Arguments:
 
 Returns:
 	0 - on succsess
-	-1 - if nothing is left to read (reached EOF)
+	EOF - if nothing is left to read (reached EOF)
 	-2 - if the line is longer than max size
 */
 char read_line(FILE *f, char *str) {
 	char c;
 	int space_left = MAX_LINE_LEN;
 
-	if ((c = fgetc(f)) == EOF) return -1;
+	if ((c = fgetc(f)) == EOF) return EOF;
 	while(c != '\n') {
 		if (c == EOF) break;
 		if (space_left == 0) return NO_MORE_SPACE_ERROR; /* no space left */

@@ -51,6 +51,22 @@ int get_register_number(char *operand) {
   return atoi(operand); /* convert number text to int and return it */
 }
 
+/*
+gets the argument in a .entry line
+
+Arguments:
+  line - pointer to the line
+  arg - pointer to where the argument will be stored
+*/
+char *get_entry_arg(char *line, char *arg) {
+  line = skip_white_space(line);
+  while(isalpha(*line)) {
+    *arg++ = *line++;
+  }
+  *arg = '\0'; /* signal end of string */
+
+  return line;
+}
 
 void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operands, int curr_line, symbol_table table[], code_memory code[], PSW *psw) {
   int val1;
@@ -63,7 +79,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       code[*ic].ARE = ABSOLUTE;
       code[*ic++].operand |= (get_register_number(operand1)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
     }
-    else if (is_instant(operand1)) {
+    else if (is_instant(operand1, table)) {
       code[*ic].ARE = ABSOLUTE;
       val1 = get_instant_value(operand1);
       if (val1 >= 0) {
@@ -135,7 +151,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       code[*ic].ARE = ABSOLUTE;
       code[*ic++].operand |= (get_register_number(operand2)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
     }
-    else if (is_instant(operand2)) {
+    else if (is_instant(operand2, table)) {
       code[*ic].ARE = ABSOLUTE;
       val1 = get_instant_value(operand1);
       if (val1 >= 0) {
@@ -210,16 +226,16 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw) 
   symbol_table *node;
 
   line = line_text;
-  while (read_line(file, line) != -1) { /* while the file isn't over */
+  while (read_line(file, line) != EOF) { /* while the file isn't over */
     ++curr_line;
     if (has_label(line)) { /* if the line has a label skip it */
       line = skip_white_space(line); /* skip white space before label */
       while(isalnum(*line)) line++; /* skip label */
       line++; /* skip the ":" */
     }
-    if ((is_data_instruction(line) != 0) || is_extern(line) != NULL) continue;
-    if (is_entry(line) != NULL) {
-      get_entry_args(line, string1);
+    if ((is_dot_data(line) || is_dot_string(line) || is_extern(line))) continue;
+    if (is_entry(line)) {
+      line = get_entry_arg(line, string1);
       node = lookup(string1, table);
       if (node != NULL) node->type = DOT_ENTRY;
       else {
@@ -229,15 +245,13 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw) 
       continue;
     }
     /* only case remaining is of a command */
-    if (has_label(line)) { /* in case of a label we skip it in the second pass */
-      line = skip_label(line); /* skips the label */
-    }
-    line = skip_white_space(line);
-    line = get_word(line, string1); /* string1 now stores the name of the command */
-    val1 = get_number_args(string1); /* val1 now stores the number of operands the command takes as input */
-    line = get_command_operands(line, string2, string3, val1); /* string2 and string3 now contain the operands of the command */
 
-    ++ic; /* skip the line we encoded in the first pass */
+    line = skip_white_space(line); /* skip white space before command */
+    line = get_command(line, string1); /* string1 now stores the name of the command */
+    val1 = get_number_args(string1); /* val1 now stores the number of operands the command takes as input */
+    line = get_operands(line, val1, string2, string3); /* string2 and string3 now contain the operands of the command */
+
+    ++ic; /* skip the cell the command is encoded in */
     code_binary_operands(string2, string3, &ic, val1, curr_line, table, code, psw);
     }
     if (psw->HAS_ERROR == 1) return -1;

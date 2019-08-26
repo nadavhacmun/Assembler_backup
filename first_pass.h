@@ -243,7 +243,7 @@ Argumenst:
   table - the symbol table
 */
 char *get_number_data(char *line, data_memory data[], int *dc, symbol_table table[]) {
-  int need_comma, sign, num;
+  int need_comma = 0, sign, num;
   char number_text[MAX_STRING_LEN], *temp;
   symbol_table *node; /* will be used to lookup macro in the symbol table */
 

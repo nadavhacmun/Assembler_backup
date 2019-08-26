@@ -143,7 +143,7 @@ void make_ob_file(char *name, code_memory memory[], int ic) {
   strcpy(file_name, ".ob");
   f = fopen(file_name, "w");
   for (i = 0; i < ic; i++) {
-    if (memory[i].op_or_command) { /* case of an operand */
+    if (memory[i].is_command == 0) { /* case of an operand */
       if (ic < 1000) { /* print an extra 0 to address (at start) */
         fprintf(f, "0");
       }
@@ -159,8 +159,8 @@ void make_ob_file(char *name, code_memory memory[], int ic) {
       fprintf(f, "%d ", ic); /* print address */
       fprintf(f, "**"); /* write unused bits to file */
       write_opcode(&memory[i], f);
-      fprintf(f, "%c\n", get_special_base_4(memory[i].sourceop)); /* write source operand addressing type to file */
-      fprintf(f, "%c\n", get_special_base_4(memory[i].destop)); /* write destination operand addresing type to file */
+      fprintf(f, "%c\n", get_special_base_4(memory[i].source_op)); /* write source operand addressing type to file */
+      fprintf(f, "%c\n", get_special_base_4(memory[i].dest_op)); /* write destination operand addresing type to file */
       fprintf(f, "%c\n", get_special_base_4(memory[i].ARE)); /* write ARE part of operand to file */
     }
   }
