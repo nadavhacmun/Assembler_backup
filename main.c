@@ -31,9 +31,12 @@ int main(int argc, char *argv[]) {
       if (val == -1) continue; /* case of an error in the second pass */
 
       /* make all the files */
-      make_ext_file(arr, table);
-      make_ent_file(arr, table);
+      make_ext_file(arr, table, is_init);
+      printf("\next working\n");
+      make_ent_file(arr, table, is_init);
+      printf("\nent working\n");
       make_ob_file(arr, code, data, ic, dc);
+      printf("\nobj working\n");
     }
   }
 
