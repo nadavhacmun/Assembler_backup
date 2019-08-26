@@ -68,10 +68,14 @@ Arguments:
   s - the string we will be searching for
   hashtab - the dictionary in which to look for s
 */
-symbol_table *lookup(char *s, symbol_table hashtab[]) {
+symbol_table *lookup(char *s, symbol_table hashtab[], int is_init[]) {
   symbol_table *np;
-  for (np = &hashtab[hash(s)]; np != NULL; np = np->next) {
+  int h = hash(s);
+  if (is_init[h] == 0) return NULL;
+  for (np = &hashtab[h]; np != NULL; np = np->next) {
     if (!isalpha(np->name[0])) return NULL;
+    printf("%s\n", np->name);
+    printf("%s\n", s);
     if (strcmp(s, np->name) == 0) return np; /* if found */
   }
 
@@ -92,7 +96,7 @@ Arguments:
 symbol_table *install(char *name, int value, unsigned int type, symbol_table hashtab[], int is_init[]) {
   symbol_table *np;
   unsigned int hashval;
-  if ((np = lookup(name, hashtab)) == NULL) {
+  if ((np = lookup(name, hashtab, is_init)) == NULL) {
       np = (symbol_table *) malloc(sizeof(*np));
       if (np == NULL) return NULL; /* if no memory can be allocated */
       hashval = hash(name);

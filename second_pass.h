@@ -70,7 +70,7 @@ char *get_entry_arg(char *line, char *arg) {
   return line;
 }
 
-void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operands, int curr_line, symbol_table table[], code_memory code[], PSW *psw) {
+void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operands, int curr_line, symbol_table table[], code_memory code[], PSW *psw, int is_init[]) {
   int val1;
   char string1[MAX_STRING_LEN], *temp;
   symbol_table *node;
@@ -81,7 +81,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       code[*ic].ARE = ABSOLUTE;
       code[(*ic)++].operand |= (get_register_number(operand1)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
     }
-    else if (is_instant(operand1, table)) {
+    else if (is_instant(operand1, table, is_init)) {
       code[*ic].ARE = ABSOLUTE;
       val1 = get_instant_value(operand1);
       if (val1 >= 0) {
@@ -96,7 +96,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       operand1 = skip_white_space(operand1);
       temp = string1;
       while(*operand1 != '[') *temp++ = *operand1++; /* copy name of the array into string1 */
-      node = lookup(string1, table);
+      node = lookup(string1, table, is_init);
       if (node != NULL) {
         if (node->type == DOT_EXT) code[*ic].ARE = EXTERNAL;
         else code[*ic].ARE = RELOCATEABLE;
@@ -123,7 +123,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       }
       else { /* case of a macro */
         while(*operand1 != ']') *temp++ = *operand1++; /* copy what's inside the brackets */
-        if ((node = lookup(string1, table)) == NULL) { /* macro not in symbol table */
+        if ((node = lookup(string1, table, is_init)) == NULL) { /* macro not in symbol table */
           printf("Error: macro undefined %s, Line: %d\n", string1, curr_line);
           psw->HAS_ERROR = 1;
         }
@@ -138,7 +138,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       operand1 = skip_white_space(operand1);
       temp = string1;
       while(isalnum(*operand1)) *temp++ = *operand1++; /* copy name of the array into string1 */
-      node = lookup(string1, table);
+      node = lookup(string1, table, is_init);
       if (node != NULL) {
         code[(*ic)++].operand = node->value;
       }
@@ -153,7 +153,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       code[*ic].ARE = ABSOLUTE;
       code[(*ic)++].operand |= (get_register_number(operand2)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
     }
-    else if (is_instant(operand2, table)) {
+    else if (is_instant(operand2, table, is_init)) {
       code[*ic].ARE = ABSOLUTE;
       val1 = get_instant_value(operand1);
       if (val1 >= 0) {
@@ -168,7 +168,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       operand2 = skip_white_space(operand2);
       temp = string1;
       while(*operand2 != '[') *temp++ = *operand2++; /* copy name of the array into string1 */
-      node = lookup(string1, table);
+      node = lookup(string1, table, is_init);
       if (node != NULL) {
         if (node->type == DOT_EXT) code[*ic].ARE = EXTERNAL;
         else code[*ic].ARE = RELOCATEABLE;
@@ -195,7 +195,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       }
       else { /* case of a macro */
         while(*operand2 != ']') *temp++ = *operand2++; /* copy what's inside the brackets */
-        if ((node = lookup(string1, table)) == NULL) { /* macro not in symbol table */
+        if ((node = lookup(string1, table, is_init)) == NULL) { /* macro not in symbol table */
           printf("Error: macro undefined %s, Line: %d\n", string1, curr_line);
           psw->HAS_ERROR = 1;
         }
@@ -210,7 +210,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       operand1 = skip_white_space(operand1);
       temp = string1;
       while(isalnum(*operand1)) *temp++ = *operand1++; /* copy name of the array into string1 */
-      node = lookup(string1, table);
+      node = lookup(string1, table, is_init);
       if (node != NULL) {
         code[(*ic)++].operand = node->value;
       }
@@ -222,14 +222,13 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
   }
 }
 
-int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw) {
+int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw, int is_init[]) {
   int ic = 0, curr_line = 0, val1;
   char line_text[MAX_STRING_LEN], string1[MAX_STRING_LEN], string2[MAX_STRING_LEN], string3[MAX_STRING_LEN], *line;
   symbol_table *node;
 
   line = line_text;
   while (read_line(file, line) != EOF) { /* while the file isn't over */
-    printf("%s\n", line);
     ++curr_line;
 
     if (*line == ';') continue;
@@ -241,8 +240,7 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw) 
     if ((is_dot_data(line) || is_dot_string(line) || is_extern(line) || is_macro(line))) continue;
     if (is_entry(line)) {
       line = get_entry_arg(line, string1);
-      node = lookup(string1, table);
-      printf("%s\n", string1);
+      node = lookup(string1, table, is_init);
       if (node != NULL) node->type = DOT_ENTRY;
       else {
         printf("Error: label undefined %s. Line: %d\n", string1, curr_line);
@@ -255,11 +253,8 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw) 
     line = get_command(line, string1); /* string1 now stores the name of the command */
     val1 = get_number_args(string1); /* val1 now stores the number of operands the command takes as input */
     line = get_operands(line, val1, string2, string3); /* string2 and string3 now contain the operands of the command */
-    printf("command: %s\n", string1);
-    printf("Argument1: %s\n", string2);
-    printf("Argument2: %s\n", string3);
     ++ic; /* skip the cell the command is encoded in */
-    code_binary_operands(string2, string3, &ic, val1, curr_line, table, code, psw);
+    code_binary_operands(string2, string3, &ic, val1, curr_line, table, code, psw, is_init);
     }
     if (psw->HAS_ERROR == 1) return -1;
 
