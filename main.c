@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
       f = fopen(argv[i], "r");
       val = first_pass(f , table, &psw, data, code, is_init, &ic, &dc);
       if (val == -1) continue; /* case of an error in the first pass */
+      fseek(f, 0, SEEK_SET);
       val = second_pass(f, table, code, &psw); /* val returns the final ic if no error was found and -1 in casw of an error */
       if (val == -1) continue; /* case of an error in the second pass */
 

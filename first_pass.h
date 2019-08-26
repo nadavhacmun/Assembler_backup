@@ -191,7 +191,7 @@ char *get_string_data(char *line, data_memory data[], int *dc) {
     data[(*dc)++].data = *line++;
     last_qoute--;
   }
-  data[*dc++].data = '\0'; /* signal end of string */
+  data[(*dc)++].data = '\0'; /* signal end of string */
 
   return ++line; /* skip the last qoute */
 }
@@ -275,7 +275,7 @@ char *get_number_data(char *line, data_memory data[], int *dc, symbol_table tabl
       node = lookup(temp, table);
       if (node == NULL) return NULL; /* macro not found */
       if (node->type != DOT_MACRO) return NULL; /* not a macro */
-      data[*dc++].data = node->value; /* copy the value of the macro into data */
+      data[(*dc)++].data = node->value; /* copy the value of the macro into data */
     }
     else { /* literal number */
       while(isdigit(*line)) {
@@ -285,10 +285,10 @@ char *get_number_data(char *line, data_memory data[], int *dc, symbol_table tabl
       num = atoi(number_text);
       if (num == 0 && number_text[0] != '0') return NULL; /* case of atoi failing, note that we need to make sure that the value of the string isn't truly 0 */
       if (sign == -1) {
-        data[*dc++].data = get_negative(num); /* get 2's complement negative since it's not surely the same as computer negative */
+        data[(*dc)++].data = get_negative(num); /* get 2's complement negative since it's not surely the same as computer negative */
       }
       else { /* sign == 1 case */
-        data[*dc++].data = num;
+        data[(*dc)++].data = num;
       }
     }
   }
@@ -501,21 +501,21 @@ char *get_operands(char *line, int num_args, char *op1, char *op2) {
   if (num_args == 0);
   if (num_args == 1) {
     line = skip_white_space(line);
-    while(isalpha(*line)) {
+    while(isalnum(*line)) {
       *op1++ = *line++; /* copy argument */
     }
     *op1 = '\0';
   }
   if (num_args == 2) {
     line = skip_white_space(line);
-    while(isalpha(*line)) {
+    while(isalnum(*line)) {
       *op1++ = *line++; /* copy argument */
     }
     *op1 = '\0';
     line = skip_white_space(line); /* skip white space before ',' */
     ++line; /* skip ',' */
     line = skip_white_space(line); /* skip white space between ',' and argument */
-    while(isalpha(*line)) {
+    while(isalnum(*line)) {
       *op2++ = *line++; /* copy argument */
     }
     *op2 = '\0';

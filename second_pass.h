@@ -60,6 +60,8 @@ Arguments:
 */
 char *get_entry_arg(char *line, char *arg) {
   line = skip_white_space(line);
+  while (isalpha(*line) || *line == '.') line++; /* skip the .entry part of the line */
+  line = skip_white_space(line); /* skip white space between .entry and start of argument */
   while(isalpha(*line)) {
     *arg++ = *line++;
   }
@@ -77,17 +79,17 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
   if (num_operands >= 1) { /* 1 operand */
     if (is_register(operand1)) {
       code[*ic].ARE = ABSOLUTE;
-      code[*ic++].operand |= (get_register_number(operand1)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
+      code[(*ic)++].operand |= (get_register_number(operand1)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
     }
     else if (is_instant(operand1, table)) {
       code[*ic].ARE = ABSOLUTE;
       val1 = get_instant_value(operand1);
       if (val1 >= 0) {
-        code[*ic++].operand = val1;
+        code[(*ic)++].operand = val1;
       }
       else { /* in this case we implement a 2's complement negative independent of how the current computer functions */
         val1 = -1*val1;
-        code[*ic++].operand = get_negative(val1);
+        code[(*ic)++].operand = get_negative(val1);
         }
       }
     else if (is_const_idx(operand1)) {
@@ -98,7 +100,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       if (node != NULL) {
         if (node->type == DOT_EXT) code[*ic].ARE = EXTERNAL;
         else code[*ic].ARE = RELOCATEABLE;
-        code[*ic++].operand = node->value;
+        code[(*ic)++].operand = node->value;
       }
       else {
         printf("Error: label undefined, Line: %d\n", curr_line);
@@ -112,7 +114,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
         /* atoi returns 0 upon failue, this if statement checks if atoi doen't fail or if the value of the number truly is 0 to avoid ambiguity */
         if (val1 != 0 || string1[0] == '0') {
           code[*ic].ARE = ABSOLUTE;
-          code[*ic++].operand = atoi(string1);
+          code[(*ic)++].operand = atoi(string1);
         }
         else {
           printf("Error: Not a number or a macro index, Line: %d\n", curr_line);
@@ -127,7 +129,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
         }
         else {
           code[*ic].ARE = ABSOLUTE;
-          code[*ic++].operand = node->value;
+          code[(*ic)++].operand = node->value;
         }
       }
       }
@@ -138,7 +140,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       while(isalnum(*operand1)) *temp++ = *operand1++; /* copy name of the array into string1 */
       node = lookup(string1, table);
       if (node != NULL) {
-        code[*ic++].operand = node->value;
+        code[(*ic)++].operand = node->value;
       }
       else {
         printf("Error: label undefined, Line: %d\n", curr_line);
@@ -149,17 +151,17 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
   if(num_operands >= 2) { /* 2 operands, this does exctly the same as done in the previous if to the second operand */
     if (is_register(operand2)) {
       code[*ic].ARE = ABSOLUTE;
-      code[*ic++].operand |= (get_register_number(operand2)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
+      code[(*ic)++].operand |= (get_register_number(operand2)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
     }
     else if (is_instant(operand2, table)) {
       code[*ic].ARE = ABSOLUTE;
       val1 = get_instant_value(operand1);
       if (val1 >= 0) {
-        code[*ic++].operand = val1;
+        code[(*ic)++].operand = val1;
       }
       else { /* in this case we implement a 2's complement negative independent of how the current computer functions */
         val1 = -1*val1;
-        code[*ic++].operand = get_negative(val1);
+        code[(*ic)++].operand = get_negative(val1);
         }
       }
     else if (is_const_idx(operand2)) {
@@ -170,7 +172,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       if (node != NULL) {
         if (node->type == DOT_EXT) code[*ic].ARE = EXTERNAL;
         else code[*ic].ARE = RELOCATEABLE;
-        code[*ic++].operand = node->value;
+        code[(*ic)++].operand = node->value;
       }
       else {
         printf("Error: label undefined, Line: %d\n", curr_line);
@@ -184,7 +186,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
         /* atoi returns 0 upon failue, this if statement checks if atoi doen't fail or if the value of the number truly is 0 to avoid ambiguity */
         if (val1 != 0 || string1[0] == '0') {
           code[*ic].ARE = ABSOLUTE;
-          code[*ic++].operand = atoi(string1);
+          code[(*ic)++].operand = atoi(string1);
         }
         else {
           printf("Error: Not a number or a macro index, Line: %d\n", curr_line);
@@ -199,7 +201,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
         }
         else {
           code[*ic].ARE = ABSOLUTE;
-          code[*ic++].operand = node->value;
+          code[(*ic)++].operand = node->value;
         }
       }
       }
@@ -210,7 +212,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       while(isalnum(*operand1)) *temp++ = *operand1++; /* copy name of the array into string1 */
       node = lookup(string1, table);
       if (node != NULL) {
-        code[*ic++].operand = node->value;
+        code[(*ic)++].operand = node->value;
       }
       else {
         printf("Error: label undefined, Line: %d\n", curr_line);
@@ -227,16 +229,20 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw) 
 
   line = line_text;
   while (read_line(file, line) != EOF) { /* while the file isn't over */
+    printf("%s\n", line);
     ++curr_line;
+
+    if (*line == ';') continue;
     if (has_label(line)) { /* if the line has a label skip it */
       line = skip_white_space(line); /* skip white space before label */
       while(isalnum(*line)) line++; /* skip label */
       line++; /* skip the ":" */
     }
-    if ((is_dot_data(line) || is_dot_string(line) || is_extern(line))) continue;
+    if ((is_dot_data(line) || is_dot_string(line) || is_extern(line) || is_macro(line))) continue;
     if (is_entry(line)) {
       line = get_entry_arg(line, string1);
       node = lookup(string1, table);
+      printf("%s\n", string1);
       if (node != NULL) node->type = DOT_ENTRY;
       else {
         printf("Error: label undefined %s. Line: %d\n", string1, curr_line);
@@ -245,12 +251,13 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw) 
       continue;
     }
     /* only case remaining is of a command */
-
     line = skip_white_space(line); /* skip white space before command */
     line = get_command(line, string1); /* string1 now stores the name of the command */
     val1 = get_number_args(string1); /* val1 now stores the number of operands the command takes as input */
     line = get_operands(line, val1, string2, string3); /* string2 and string3 now contain the operands of the command */
-
+    printf("command: %s\n", string1);
+    printf("Argument1: %s\n", string2);
+    printf("Argument2: %s\n", string3);
     ++ic; /* skip the cell the command is encoded in */
     code_binary_operands(string2, string3, &ic, val1, curr_line, table, code, psw);
     }
