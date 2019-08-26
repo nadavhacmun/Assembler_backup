@@ -256,5 +256,5 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw) 
     }
     if (psw->HAS_ERROR == 1) return -1;
 
-    return ic;
+    return 0;
 }

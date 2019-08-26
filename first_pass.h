@@ -230,7 +230,7 @@ Returns:
   2's complement negative of num
 */
 int get_negative(int num) {
-
+  return (~num) + 1;
 }
 
 /*
@@ -604,9 +604,11 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
   int curr_line = 0, val1, val2;
 
 
-  while ((val1 = read_line(f, line)) != EOF) { /* while file isn't over */
+  while ((val1 = read_line(f, line_arr)) != EOF) { /* while file isn't over */
     line = line_arr; /* line now points to where the line will be stored */
     ++curr_line; /* increment line count */
+    printf("%s\n", line);
+    if (*line == ';') continue; /* comment line */
     if (val1 == LINE_TOO_LONG) { /* if the line is too long to be read */
       psw->HAS_ERROR = 1; /* notify we have error */
       printf("Error: line too long, Line number: %d\n", curr_line); /* print error */

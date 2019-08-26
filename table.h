@@ -107,9 +107,7 @@ symbol_table *install(char *name, int value, unsigned int type, symbol_table has
       return np;
   }
   /* if the name is already defined assembler should raise an error so we return null */
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /*

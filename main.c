@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
       /* make all the files */
       make_ext_file(arr, table);
       make_ent_file(arr, table);
-      make_ob_file(arr, code, val);
+      make_ob_file(arr, code, data, ic, dc);
     }
   }
 

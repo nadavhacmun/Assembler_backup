@@ -100,13 +100,27 @@ Arguments:
   f - file pointer
 */
 void write_operand(code_memory *operand_code, FILE *f) {
-  int i, operand, pair_value;
+  int i, pair_value;
   char special_base_4;
 
-  operand = operand_code->operand; /* get the coded operand */
   for (i = 5; i >= 0; i--) { /* there are twelve bits in the data section of the operand so there are six pairs */
-    if ((operand >> (2*i + 1)) & 01) pair_value += 2; /* we are going over the pairs from last to first, we first check the leftmost bit in the pair, this bit's value is 2 so we add 2 if it's on */
-    if ((operand >> (2*i)) & 01) pair_value += 1;
+    pair_value = 0;
+    if ((operand_code->operand >> (2*i + 1)) & 01) pair_value += 2; /* we are going over the pairs from last to first, we first check the leftmost bit in the pair, this bit's value is 2 so we add 2 if it's on */
+    if ((operand_code->operand >> (2*i)) & 01) pair_value += 1;
+
+    special_base_4 = get_special_base_4(pair_value);
+    fprintf(f, "%c", special_base_4);
+  }
+}
+
+void write_data(data_memory *data, FILE *f) {
+  int i, pair_value;
+  char special_base_4;
+
+  for (i = 6; i >= 0; i--) { /* there are twelve bits in the data section of the operand so there are six pairs */
+    pair_value = 0;
+    if ((data->data >> (2*i + 1)) & 01) pair_value += 2; /* we are going over the pairs from last to first, we first check the leftmost bit in the pair, this bit's value is 2 so we add 2 if it's on */
+    if ((data->data >> (2*i)) & 01) pair_value += 1;
 
     special_base_4 = get_special_base_4(pair_value);
     fprintf(f, "%c", special_base_4);
@@ -134,7 +148,7 @@ void write_opcode(code_memory *command_code, FILE *f) {
   }
 }
 
-void make_ob_file(char *name, code_memory memory[], int ic) {
+void make_ob_file(char *name, code_memory code[], data_memory data[], int ic, int dc) {
   int i;
   FILE *f;
   char file_name[MAX_STRING_LEN];
@@ -142,14 +156,15 @@ void make_ob_file(char *name, code_memory memory[], int ic) {
   strcpy(file_name, name);
   strcpy(file_name, ".ob");
   f = fopen(file_name, "w");
+  printf("%d\t%d\n", ic, dc); /* print ic and dc to file */
   for (i = 0; i < ic; i++) {
-    if (memory[i].is_command == 0) { /* case of an operand */
+    if (code[i].is_command == 0) { /* case of an operand */
       if (ic < 1000) { /* print an extra 0 to address (at start) */
         fprintf(f, "0");
       }
       fprintf(f, "%d ", ic); /* print address and space */
-      write_operand(&memory[i], f); /* write data part of operand to file */
-      fprintf(f, "%c\n", get_special_base_4(memory[i].ARE)); /* write ARE part of operand to file */
+      write_operand(&code[i], f); /* write data part of operand to file */
+      fprintf(f, "%c\n", get_special_base_4(code[i].ARE)); /* write ARE part of operand to file */
     }
 
     else { /* case of command */
@@ -158,11 +173,18 @@ void make_ob_file(char *name, code_memory memory[], int ic) {
       }
       fprintf(f, "%d ", ic); /* print address */
       fprintf(f, "**"); /* write unused bits to file */
-      write_opcode(&memory[i], f);
-      fprintf(f, "%c\n", get_special_base_4(memory[i].source_op)); /* write source operand addressing type to file */
-      fprintf(f, "%c\n", get_special_base_4(memory[i].dest_op)); /* write destination operand addresing type to file */
-      fprintf(f, "%c\n", get_special_base_4(memory[i].ARE)); /* write ARE part of operand to file */
+      write_opcode(&code[i], f);
+      fprintf(f, "%c\n", get_special_base_4(code[i].source_op)); /* write source operand addressing type to file */
+      fprintf(f, "%c\n", get_special_base_4(code[i].dest_op)); /* write destination operand addresing type to file */
+      fprintf(f, "%c\n", get_special_base_4(code[i].ARE)); /* write ARE part of operand to file */
     }
   }
 }
+  for (i = 0; i < dc; i++) {
+    if (ic + i < 1000)  { /* if line number is less then 1000 add another 0 to fit the format */
+      printf("0");
+    }
+    printf("%d ", i + ic); /* print address */
+    write_data(&data[i], f);
+  }
 }
