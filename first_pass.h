@@ -1,6 +1,7 @@
 #include "table.h"
 
 #define LINE_TOO_LONG -2 /* read_line returns -2 if the line is too long */
+#define STARTING_INDEX_CODE 100 /* this is where we start storing information in memory */
 
 /*
 defining PSW
@@ -523,6 +524,7 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
         psw->HAS_ERROR = 1; /* if the name of the macro is already in the table we have an error */
         printf("Error: macro name already in table, Line number: %d\n", curr_line); /* print error */
       }
+      continue; /* go to the next line */
     }
 
     if(has_label(line)) {
@@ -541,6 +543,7 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
         }
       }
       line = get_string_data(line, data, dc);
+      continue; /* go to the next line */
     }
 
     if (is_dot_data(line)) {
@@ -553,7 +556,34 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
           install(string3, *dc, DOT_DATA, table, is_init); /* install node in table */
         }
     }
-    line = get_number_data(line, data, dc, table);
+    line = get_number_data(line, data, dc, table); /* get all numbers and store them in the data section */
+    continue; /* go to the next line */
+  }
+
+  if (is_entry(line)) {
+    continue; /* we deal with entry lines in the second pass */
+  }
+
+  if (is_extern(line)) {
+    line = get_extern_arg(line, string1); /* get the argument */
+    install(string1, 0, DOT_EXT, table, is_init); /* insert it into the table with no value and .ext as type*/
+    continue; /* go to next line */
+  }
+  /* the only remaining case if of a command, so we are dealing with a command */
+  if (psw->LABEL_DEFINITION) { /* if we have a label */
+    if (lookup(string3, table) != NULL) { /* if the label is already in the table */
+      psw->HAS_ERROR = 1;
+      printf("Error: Label \"%s\" already defined, Line number: %d\n", string3, curr_line);
+    }
+    else {
+      install(string3, *ic + STARTING_INDEX_CODE, DOT_CODE, table, is_init);
+    }
+  }
+  line = get_command(line, string1);
+  if ((val1 = is_valid_command(line)) == -1) {
+    psw->HAS_ERROR = 1;
+    printf("Error: invalid command name, Line number: %d\n", curr_line);
+    continue; /* can't do anything more on this line so we go to the next one */
   }
 }
 }
