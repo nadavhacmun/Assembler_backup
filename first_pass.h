@@ -298,9 +298,10 @@ Returns:
   0 - if it isn't a .extern line
 */
 int is_extern(char *line) {
-  line = skip_white_space(line);
-  char pattern = ".extern"; /* pattern for an external line */
+  char pattern[] = ".extern"; /* pattern for an external line */
   char *temp;
+
+  line = skip_white_space(line);
   temp = pattern; /* temp now points to pattern */
   while(!isspace(*line)) { /* while the current word isn't over */
     if (*line++ != *temp++) return 0; /* if they don't match return 0 */
@@ -342,9 +343,10 @@ Returns:
   0 - if it isn't a .entry line
 */
 int is_entry(char *line) {
-  line = skip_white_space(line);
-  char pattern = ".entry"; /* pattern for an entry line */
   char *temp;
+  char pattern[] = ".entry"; /* pattern for an entry line */
+
+  line = skip_white_space(line);
   temp = pattern; /* temp now points to pattern */
   while(!isspace(*line)) { /* while the current word isn't over */
     if (*line++ != *temp++) return 0; /* if they don't match return 0 */
@@ -384,36 +386,6 @@ Returns:
   opcode of command if it is valid (opcode is described in the instructions)
 */
 int is_valid_command(char *command) {
-  if(strcmp(command, "mov") == 0) return 0;
-  else if(strcmp(command, "cmp") == 0) return 1;
-  else if(strcmp(command, "add") == 0) return 2;
-  else if(strcmp(command, "sub") == 0) return 3;
-  else if(strcmp(command, "not") == 0) return 4;
-  else if(strcmp(command, "clr") == 0) return 5;
-  else if(strcmp(command, "lea") == 0) return 6;
-  else if(strcmp(command, "inc") == 0) return 7;
-  else if(strcmp(command, "dec") == 0) return 8;
-  else if(strcmp(command, "jmp") == 0) return 9;
-  else if(strcmp(command, "bne") == 0) return 10;
-  else if(strcmp(command, "red") == 0) return 11;
-  else if(strcmp(command, "prn") == 0) return 12;
-  else if(strcmp(command, "jsr") == 0) return 13;
-  else if(strcmp(command, "rts") == 0) return 14;
-  else if(strcmp(command, "stop") == 0) return 15;
-  return -1;
-}
-
-/*
-gets the number of arguments a command has
-
-Arguments:
-  command - pointer to the command
-
-Returns:
-  number of arguments if command is valid
-  -1 if command is invalid
-*/
-int get_number_args(char *command) {
   if(strcmp(command, "mov") == 0) return 0;
   else if(strcmp(command, "cmp") == 0) return 1;
   else if(strcmp(command, "add") == 0) return 2;
@@ -528,7 +500,7 @@ Arguments:
   dc - pointer to dc
 */
 int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code_memory code[], int is_init[], int *ic, int *dc) {
-  char line_arr[MAX_LINE_LEN], *linestring1, [MAX_STRING_LEN], string2[MAX_STRING_LEN], string3[MAX_STRING_LEN]; /* string1 string2 and string3 will be used to store temporary string data */
+  char line_arr[MAX_LINE_LEN], *line, string1[MAX_STRING_LEN], string2[MAX_STRING_LEN], string3[MAX_STRING_LEN]; /* string1 string2 and string3 will be used to store temporary string data */
   int curr_line = 0, val1;
 
 
@@ -543,7 +515,7 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
 
     if(is_macro(line)) { /* case of a macro */
       line = get_macro(line, string1, string2); /* string1 now stores the name of the macro while string2 now stored it's value */
-      val1 = atoi(string2) /* convert value to integer from string */
+      val1 = atoi(string2); /* convert value to integer from string */
       if (lookup(string1, table) == NULL) { /* if not found */
         install(string1, val1, DOT_MACRO, table, is_init);
       }
@@ -554,16 +526,34 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
     }
 
     if(has_label(line)) {
-      line = get_label(line, string1); /* string1 now contains the label */
+      line = get_label(line, string3); /* string3 now contains the label */
       psw->LABEL_DEFINITION = 1; /* notify psw of a label definition */
     }
 
     if (is_dot_string(line)) {
-
+      if (psw->LABEL_DEFINITION) { /* if we have a label definition */
+        if (lookup(string3, table) != NULL) { /* if the label is already in the table */
+          psw->HAS_ERROR = 1; /* turn on error */
+          printf("Error: label already defined, \"%s\", Line number: %d\n", string3, curr_line); /* print error */
+        }
+        else {
+          install(string3, *dc, DOT_DATA, table, is_init); /* install node in table */
+        }
+      }
+      line = get_string_data(line, data, dc);
     }
 
     if (is_dot_data(line)) {
-
+      if (psw->LABEL_DEFINITION) { /* if we have a label definition */
+        if (lookup(string3, table) != NULL) { /* if the label is already in the table */
+          psw->HAS_ERROR = 1; /* turn on error */
+          printf("Error: label already defined, \"%s\", Line number: %d\n", string3, curr_line); /* print error */
+        }
+        else {
+          install(string3, *dc, DOT_DATA, table, is_init); /* install node in table */
+        }
     }
+    line = get_number_data(line, data, dc, table);
   }
+}
 }
