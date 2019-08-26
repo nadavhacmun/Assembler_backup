@@ -117,7 +117,7 @@ Returns:
 */
 int has_label(char *line) {
   line = skip_white_space(line); /* skip white space at the start of the line */
-  while(isalpha(*line)) line++; /* we don't care what the label is yet we are just checking if it exists */
+  while(isalnum(*line)) line++; /* we don't care what the label is yet we are just checking if it exists */
   if (*line == ':') return 1; /* a label looks like "string:" where string is any string, we are cheking for the ':' after skipping the string, if it has a ':' it's a label so we return 1 */
 
   return 0; /* no label */
@@ -135,7 +135,7 @@ Returns:
 */
 char *get_label(char *line, char *label) {
   line = skip_white_space(line); /* skip white space at start of line */
-  while(isalpha(*line)) *label++ = *line++; /* copy label */
+  while(isalnum(*line)) *label++ = *line++; /* copy label */
   *line = '\0'; /* signal end of string */
 
   return ++line; /* skip the ':' */
@@ -175,11 +175,9 @@ Argumenst:
 char *get_string_data(char *line, data_memory data[], int *dc) {
   int last_qoute, i = 0;
   char *line_ptr;
-
   line = skip_white_space(line); /* skip white space before '.string' part of line */
   while (*line == '.' || isalpha(*line)) line++; /* skip '.string' part of the line */
   line = skip_white_space(line); /* skip white space between '.string' and argument */
-
   if (*line != '\"') return NULL; /* if we are missing an opening " return NULL */
   line++; /* skip the " */
   line_ptr = line;
@@ -188,8 +186,9 @@ char *get_string_data(char *line, data_memory data[], int *dc) {
     i++; /* increment i (i just counts how many chars have passed) */
     line_ptr++; /* get to the next char in line */
   }
-  while (last_qoute != 0) { /* copy string */
-    data[*dc++].data = *line++;
+
+  while (last_qoute > 0) { /* copy string */
+    data[(*dc)++].data = *line++;
     last_qoute--;
   }
   data[*dc++].data = '\0'; /* signal end of string */
@@ -607,6 +606,7 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
   while ((val1 = read_line(f, line_arr)) != EOF) { /* while file isn't over */
     line = line_arr; /* line now points to where the line will be stored */
     ++curr_line; /* increment line count */
+    psw->LABEL_DEFINITION = 0;
     printf("%s\n", line);
     if (*line == ';') continue; /* comment line */
     if (val1 == LINE_TOO_LONG) { /* if the line is too long to be read */
@@ -681,7 +681,7 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
     }
   }
   line = get_command(line, string1);
-  if ((val1 = is_valid_command(line)) == -1) {
+  if ((val1 = is_valid_command(string1)) == -1) {
     psw->HAS_ERROR = 1;
     printf("Error: invalid command name, Line number: %d\n", curr_line);
     continue; /* can't do anything more on this line so we go to the next one */

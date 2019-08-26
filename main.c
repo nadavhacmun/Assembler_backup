@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
       while (*temp1 != '.') *temp2++ = *temp1++; /* copy name of the current file without the extension */
       *temp2 = '\0';
       f = fopen(argv[i], "r");
-      val = first_pass(f , table, &psw, data, code, &ic, &dc, is_init);
+      val = first_pass(f , table, &psw, data, code, is_init, &ic, &dc);
       printf("first pass complete\n");
       if (val == -1) continue; /* case of an error in the first pass */
       val = second_pass(f, table, code, &psw); /* val returns the final ic if no error was found and -1 in casw of an error */
