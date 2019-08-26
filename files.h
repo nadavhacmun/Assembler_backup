@@ -176,10 +176,9 @@ void make_ob_file(char *name, code_memory code[], data_memory data[], int ic, in
       fprintf(f, "%d ", i); /* print address */
       fprintf(f, "**"); /* write unused bits to file */
       write_opcode(&code[i], f);
-      fprintf(f, "%c\n", get_special_base_4(code[i].source_op)); /* write source operand addressing type to file */
-      fprintf(f, "%c\n", get_special_base_4(code[i].dest_op)); /* write destination operand addresing type to file */
+      fprintf(f, "%c", get_special_base_4(code[i].source_op)); /* write source operand addressing type to file */
+      fprintf(f, "%c", get_special_base_4(code[i].dest_op)); /* write destination operand addresing type to file */
       fprintf(f, "%c\n", get_special_base_4(code[i].ARE)); /* write ARE part of operand to file */
-
   }
 }
   for (i = 0; i < dc; i++) {

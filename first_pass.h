@@ -538,9 +538,9 @@ Returns:
   INSTANT - when operand's addressing type is instant addressing
 */
 int get_operand_type(char *operand, symbol_table table[]) {
-  if(is_register(operand)) return REGISTER;
-  if(is_direct(operand, table)) return DIRECT;
-  if(is_const_idx(operand)) return CONST_IDX;
+  if(is_register(operand) == 1) return REGISTER;
+  if(is_direct(operand, table) == 1) return DIRECT;
+  if(is_const_idx(operand) == 1) return CONST_IDX;
   return INSTANT;
 }
 

@@ -34,6 +34,5 @@ int main(int argc, char *argv[]) {
       make_ob_file(arr, code, data, ic, dc);
     }
   }
-
   return 0;
 }
