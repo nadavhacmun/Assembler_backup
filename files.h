@@ -20,7 +20,7 @@ void make_ext_file(char *name, symbol_table table[], int is_init[]) {
   char file_name[MAX_STRING_LEN];
   FILE *f;
   strcpy(file_name, name);
-  strcpy(file_name, ".ext"); /* add a .ext to end of file name */
+  strcat(file_name, ".ext"); /* add a .ext to end of file name */
   f = fopen(file_name, "w");
   if (has_ext_in_symbol_table(table)) { /* case when we need to build a file */
     for (i = 0; i < HASHSIZE; i++) {
@@ -63,7 +63,7 @@ void make_ent_file(char *name, symbol_table table[], int is_init[]) {
   FILE *f;
 
   strcpy(file_name, name);
-  strcpy(file_name, ".ent"); /* add a .ext to end of file name */
+  strcat(file_name, ".ent"); /* add a .ent to end of file name */
   f = fopen(file_name, "w");
   if (has_ext_in_symbol_table(table)) { /* case when we need to build a file */
     for (i = 0; i < HASHSIZE; i++) {
@@ -155,39 +155,39 @@ void make_ob_file(char *name, code_memory code[], data_memory data[], int ic, in
   int i;
   FILE *f;
   char file_name[MAX_STRING_LEN];
-
   strcpy(file_name, name);
-  strcpy(file_name, ".ob");
+  strcat(file_name, ".ob");
   f = fopen(file_name, "w");
-  printf("%d\t%d\n", ic, dc); /* print ic and dc to file */
+  fprintf(f, "%d\t%d\n", ic, dc); /* print ic and dc to file */
   for (i = 0; i < ic; i++) {
     if (code[i].is_command == 0) { /* case of an operand */
-      if (ic < 1000) { /* print an extra 0 to address (at start) */
+      if (i < 1000) { /* print an extra 0 to address (at start) */
         fprintf(f, "0");
       }
-      fprintf(f, "%d ", ic); /* print address and space */
+      fprintf(f, "%d ", i); /* print address and space */
       write_operand(&code[i], f); /* write data part of operand to file */
       fprintf(f, "%c\n", get_special_base_4(code[i].ARE)); /* write ARE part of operand to file */
     }
 
     else { /* case of command */
-      if (ic < 1000) { { /* print an extra 0 to address (at start) */
+      if (i < 1000) { /* print an extra 0 to address (at start) */
         fprintf(f, "0");
       }
-      fprintf(f, "%d ", ic); /* print address */
+      fprintf(f, "%d ", i); /* print address */
       fprintf(f, "**"); /* write unused bits to file */
       write_opcode(&code[i], f);
       fprintf(f, "%c\n", get_special_base_4(code[i].source_op)); /* write source operand addressing type to file */
       fprintf(f, "%c\n", get_special_base_4(code[i].dest_op)); /* write destination operand addresing type to file */
       fprintf(f, "%c\n", get_special_base_4(code[i].ARE)); /* write ARE part of operand to file */
-    }
+
   }
 }
   for (i = 0; i < dc; i++) {
     if (ic + i < 1000)  { /* if line number is less then 1000 add another 0 to fit the format */
-      printf("0");
+      fprintf(f, "0");
     }
-    printf("%d ", i + ic); /* print address */
+    fprintf(f, "%d ", i + ic); /* print address */
     write_data(&data[i], f);
+    fprintf(f, "\n");
   }
 }

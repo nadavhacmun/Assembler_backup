@@ -24,19 +24,14 @@ int main(int argc, char *argv[]) {
       *temp2 = '\0';
       f = fopen(argv[i], "r");
       val = first_pass(f , table, &psw, data, code, is_init, &ic, &dc);
-      printf("first pass complete\n");
       if (val == -1) continue; /* case of an error in the first pass */
       val = second_pass(f, table, code, &psw); /* val returns the final ic if no error was found and -1 in casw of an error */
-      printf("second pass complete\n");
       if (val == -1) continue; /* case of an error in the second pass */
 
       /* make all the files */
       make_ext_file(arr, table, is_init);
-      printf("\next working\n");
       make_ent_file(arr, table, is_init);
-      printf("\nent working\n");
       make_ob_file(arr, code, data, ic, dc);
-      printf("\nobj working\n");
     }
   }
 

@@ -607,7 +607,6 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
     line = line_arr; /* line now points to where the line will be stored */
     ++curr_line; /* increment line count */
     psw->LABEL_DEFINITION = 0;
-    printf("%s\n", line);
     if (*line == ';') continue; /* comment line */
     if (val1 == LINE_TOO_LONG) { /* if the line is too long to be read */
       psw->HAS_ERROR = 1; /* notify we have error */
