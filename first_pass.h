@@ -627,7 +627,11 @@ void build_binary_code(code_memory code[], int *ic, int opcode, int num_args, ch
   else if (num_args == 2) {
     type1 = get_operand_type(op1, table, is_init);
     type2 = get_operand_type(op2, table, is_init);
-    if (type1 == REGISTER && type2 == REGISTER) L++; /* special case when both operands are register */
+    if (type1 == REGISTER && type2 == REGISTER) { /* special case when both operands are registers */
+      L++; /* they share a single cell */
+      code[*ic].source_op = REGISTER;
+      code[*ic].dest_op = REGISTER;
+    }
     else {
       L += get_operand_extra_cells(type1); /* amount of cells needed to code source operand */
       L += get_operand_extra_cells(type2); /* amount of cells needed to code destination operand */
