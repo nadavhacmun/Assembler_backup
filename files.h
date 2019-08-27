@@ -143,6 +143,7 @@ void write_opcode(code_memory *command_code, FILE *f) {
 
   command = command_code->opcode; /* get the coded operand */
   for (i = 1; i >= 0; i--) { /* there are twelve bits in the data section of the operand so there are six pairs */
+    pair_value = 0;
     if ((command >> (2*i + 1)) & 01) pair_value += 2; /* we are going over the pairs from last to first, we first check the leftmost bit in the pair, this bit's value is 2 so we add 2 if it's on */
     if ((command >> (2*i)) & 01) pair_value += 1;
 

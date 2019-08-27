@@ -615,14 +615,13 @@ void build_binary_code(code_memory code[], int *ic, int opcode, int num_args, ch
   int L = 0;
   int type1, type2;
 
-  if (num_args == 0) {
-    code[*ic].is_command = 1;
-    code[*ic].opcode = opcode;
-    L++; /* add one cell to L since we are only coding the command */
-  }
-  else if (num_args == 1) { /* if the function only has a single argument */
+  L++; /* space it takes to store the command */
+
+  code[*ic].is_command = 1;
+  code[*ic].opcode = opcode;
+  if (num_args == 1) { /* if the function only has a single argument */
     type1 = get_operand_type(op1, table, is_init); /* type1 now has the value of the addressing type */
-    code[*ic].source_op = type1;
+    code[*ic].dest_op = type1;
     L += get_operand_extra_cells(type1); /* returns amount of cells to code operand */
   }
   else {
