@@ -124,15 +124,13 @@ Arguments:
 */
 void correct_data_index(int offset, symbol_table table[], int is_init[]) {
   int i;
-  symbol_table curr;
+  symbol_table *curr;
   for (i = 0; i < HASHSIZE; i++) {
     if (is_init[i] == 0) continue;
-    curr = table[i];
-    while (curr.next != NULL) {
-      if (curr.type == DOT_DATA) curr.value += offset;
-      printf("TYPE IS: %d\n", (*(curr.next)).type);
-      printf("hrllodada");
-      curr = *(curr.next);
+    curr = &table[i];
+    while (curr != NULL) {
+      if (curr->type == DOT_DATA) curr->value += offset;
+      curr = curr->next;
     }
   }
 }
