@@ -624,7 +624,7 @@ void build_binary_code(code_memory code[], int *ic, int opcode, int num_args, ch
     code[*ic].dest_op = type1;
     L += get_operand_extra_cells(type1); /* returns amount of cells to code operand */
   }
-  else {
+  else if (num_args == 2) {
     type1 = get_operand_type(op1, table, is_init);
     type2 = get_operand_type(op2, table, is_init);
     if (type1 == REGISTER && type2 == REGISTER) L++; /* special case when both operands are register */
@@ -656,6 +656,7 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
   int curr_line = 0, val1, val2;
 
   while ((val1 = read_line(f, line_arr)) != EOF) { /* while file isn't over */
+    string1[0] = '\0'; string2[0] = '\0'; string3[0] = '\0';
     line = line_arr; /* line now points to where the line will be stored */
     ++curr_line; /* increment line count */
     psw->LABEL_DEFINITION = 0;
