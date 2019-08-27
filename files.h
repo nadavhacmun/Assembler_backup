@@ -14,31 +14,20 @@ int has_ext_in_symbol_table(symbol_table table[]) {
   return 0;
 }
 
-void make_ext_file(char *name, symbol_table table[], int is_init[]) {
+void make_ext_file(char *name, code_memory code[], int ic, symbol_table table[], int is_init[]) {
   int i;
-  symbol_table curr;
   char file_name[MAX_STRING_LEN];
   FILE *f;
   strcpy(file_name, name);
   strcat(file_name, ".ext"); /* add a .ext to end of file name */
   f = fopen(file_name, "w");
   if (has_ext_in_symbol_table(table)) { /* case when we need to build a file */
-    for (i = 0; i < HASHSIZE; i++) {
-      if (is_init[i] == 1) { /* if cell is initialized */
-        curr = table[i];
-        while (curr.next != NULL) {
-          if (curr.type == DOT_EXT) {
-            fprintf(f, curr.name);
-            fprintf(f, " ");
-            if (curr.value < 1000) { /* print an extra 0 so it's in the same pattern as other lines */
-              fprintf(f, "0");
-            }
-            fprintf(f, "%d", curr.value);
-          }
-          curr = *curr.next;
-        }
+    for (i = 0; i < ic; i++) {
+      if (code[i].ARE == 1) {
+        fprintf(f, "%s %d\n", code[i].name, i + STARTING_INDEX_CODE);
       }
-  }
+      else continue;
+    }
 }
 }
 
@@ -83,6 +72,7 @@ void make_ent_file(char *name, symbol_table table[], int is_init[]) {
       }
   }
 }
+fclose(f);
 }
 
 /*

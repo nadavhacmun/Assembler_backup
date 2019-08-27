@@ -29,10 +29,12 @@ int main(int argc, char *argv[]) {
       val = second_pass(f, table, code, &psw, is_init); /* val returns the final ic if no error was found and -1 in casw of an error */
       if (val == -1) continue; /* case of an error in the second pass */
       /* make all the files */
-      make_ext_file(arr, table, is_init);
+      fseek(f, 0, SEEK_SET);
+      make_ext_file(arr, code, ic, table, is_init);
       make_ent_file(arr, table, is_init);
       make_ob_file(arr, code, data, ic, dc);
     }
+    fclose(f);
   }
   return 0;
 }

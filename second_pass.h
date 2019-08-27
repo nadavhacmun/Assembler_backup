@@ -119,6 +119,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       if (node != NULL) {
         if (node->type == DOT_EXT) code[*ic].ARE = EXTERNAL;
         else code[*ic].ARE = RELOCATEABLE;
+        strcpy(code[*ic].name, string1);
         code[(*ic)++].operand = node->value;
       }
       ++operand1; /* skip the '[' */
@@ -157,6 +158,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       if (node != NULL) {
         if (node->type == DOT_EXT) {
           code[*ic].ARE = EXTERNAL;
+          strcpy(code[*ic].name, node->name);
         }
         else { /* node type is DOT_DATA so it's relocateable */
           code[*ic].ARE = RELOCATEABLE;
@@ -194,6 +196,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       if (node != NULL) {
         if (node->type == DOT_EXT) code[*ic].ARE = EXTERNAL;
         else code[*ic].ARE = RELOCATEABLE;
+        strcpy(code[*ic].name, string1);
         code[(*ic)++].operand = node->value;
       }
       else {
@@ -237,6 +240,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       node = lookup(string1, table, is_init);
       if (node != NULL) {
         code[(*ic)++].operand = node->value;
+        strcpy(code[*ic].name, node->name);
       }
       else {
         printf("Error: label undefined, Line: %d\n", curr_line);

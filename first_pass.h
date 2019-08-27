@@ -44,6 +44,7 @@ typedef struct {
   unsigned int ARE: 2;
   unsigned int is_command: 1;
   unsigned int operand: 12;
+  char name[MAX_LINE_LEN];
 } code_memory;
 
 /*
