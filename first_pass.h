@@ -730,7 +730,7 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
       printf("Error: Label \"%s\" already defined, Line number: %d\n", label, curr_line);
     }
     else {
-      install(label, *ic, DOT_CODE, table, is_init);
+      install(label, *ic + STARTING_INDEX_CODE, DOT_CODE, table, is_init);
     }
   }
   line = get_command(line, string1);
