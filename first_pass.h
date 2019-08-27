@@ -136,7 +136,7 @@ Returns:
 char *get_label(char *line, char *label) {
   line = skip_white_space(line); /* skip white space at start of line */
   while(isalnum(*line)) *label++ = *line++; /* copy label */
-  *line = '\0'; /* signal end of string */
+  *label = '\0'; /* signal end of string */
 
   return ++line; /* skip the ':' */
 }
@@ -501,24 +501,75 @@ char *get_operands(char *line, int num_args, char *op1, char *op2) {
   if (num_args == 0);
   if (num_args == 1) {
     line = skip_white_space(line);
-    while(isalnum(*line) || *line == '[' || *line == ']') {
-      *op1++ = *line++; /* copy argument */
+    if (*line == '#') {
+      ++line; /* skip the '#' */
+      if (isalpha(*line)) { /* case of a macro */
+        while(isalpha(*line)) {
+          *op1++ = *line++;
+        }
+        *op1 = '\0';
+      }
+      else { /* case of literal number */
+        while (isdigit(*line) || *line == '+' || *line == '-') { /* copy number */
+          *op1++ = *line++;
+        }
+        *op1 = '\0';
+      }
     }
-    *op1 = '\0';
+    else {
+      while(isalnum(*line) || *line == '[' || *line == ']') {
+        *op1++ = *line++; /* copy argument */
+      }
+      *op1 = '\0';
+    }
   }
   if (num_args == 2) {
     line = skip_white_space(line);
-    while(isalnum(*line) || *line == '[' || *line == ']') {
-      *op1++ = *line++; /* copy argument */
+    if (*line == '#') {
+      ++line; /* skip the '#' */
+      if (isalpha(*line)) { /* case of a macro */
+        while(isalpha(*line)) {
+          *op1++ = *line++;
+        }
+        *op1 = '\0';
+      }
+      else { /* case of literal number */
+        while (isdigit(*line) || *line == '+' || *line == '-') { /* copy number */
+          *op1++ = *line++;
+        }
+        *op1 = '\0';
+      }
     }
-    *op1 = '\0';
+    else {
+      while(isalnum(*line) || *line == '[' || *line == ']' || *line == '#') {
+        *op1++ = *line++; /* copy argument */
+      }
+      *op1 = '\0';
+    }
     line = skip_white_space(line); /* skip white space before ',' */
     ++line; /* skip ',' */
     line = skip_white_space(line); /* skip white space between ',' and argument */
-    while(isalnum(*line) || *line == '[' || *line == ']') {
-      *op2++ = *line++; /* copy argument */
+    if (*line == '#') {
+      ++line; /* skip the '#' */
+      if (isalpha(*line)) { /* case of a macro */
+        while(isalpha(*line)) {
+          *op2++ = *line++;
+        }
+        *op2 = '\0';
+      }
+      else { /* case of literal number */
+        while (isdigit(*line) || *line == '+' || *line == '-') { /* copy number */
+          *op2++ = *line++;
+        }
+        *op2 = '\0';
+      }
     }
-    *op2 = '\0';
+    else {
+      while(isalnum(*line) || *line == '[' || *line == ']' || *line == '#') {
+        *op2++ = *line++; /* copy argument */
+      }
+      *op2 = '\0';
+    }
   }
 
   return line;
@@ -602,7 +653,6 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
   char line_arr[MAX_LINE_LEN], *line, string1[MAX_STRING_LEN], string2[MAX_STRING_LEN], string3[MAX_STRING_LEN], label[MAX_STRING_LEN]; /* string1 string2 string3 will be used to store temporary string data */
   int curr_line = 0, val1, val2;
 
-
   while ((val1 = read_line(f, line_arr)) != EOF) { /* while file isn't over */
     line = line_arr; /* line now points to where the line will be stored */
     ++curr_line; /* increment line count */
@@ -667,6 +717,7 @@ int first_pass(FILE *f, symbol_table table[], PSW *psw, data_memory data[], code
   if (is_extern(line)) {
     line = get_extern_arg(line, string1); /* get the argument */
     install(string1, 0, DOT_EXT, table, is_init); /* insert it into the table with no value and .ext as type*/
+
     continue; /* go to next line */
   }
   /* the only remaining case if of a command, so we are dealing with a command */

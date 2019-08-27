@@ -96,20 +96,18 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       operand1 = skip_white_space(operand1);
       temp = string1;
       while(*operand1 != '[') *temp++ = *operand1++; /* copy name of the array into string1 */
+      *temp = '\0';
       node = lookup(string1, table, is_init);
       if (node != NULL) {
         if (node->type == DOT_EXT) code[*ic].ARE = EXTERNAL;
         else code[*ic].ARE = RELOCATEABLE;
         code[(*ic)++].operand = node->value;
       }
-      else {
-        printf("Error: label undefined, Line: %d\n", curr_line);
-        psw->HAS_ERROR = 1;
-      }
       ++operand1; /* skip the '[' */
       temp = string1; /* set temp to the start of string1 again */
       if (isdigit(*operand1)) { /* case of a number */
         while(*operand1 != ']') *temp++ = *operand1++; /* copy what's inside the brackets */
+        *temp = '\0';
         val1 = atoi(string1);
         /* atoi returns 0 upon failue, this if statement checks if atoi doen't fail or if the value of the number truly is 0 to avoid ambiguity */
         if (val1 != 0 || string1[0] == '0') {
@@ -123,6 +121,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       }
       else { /* case of a macro */
         while(*operand1 != ']') *temp++ = *operand1++; /* copy what's inside the brackets */
+        *temp = '\0';
         if ((node = lookup(string1, table, is_init)) == NULL) { /* macro not in symbol table */
           printf("Error: macro undefined %s, Line: %d\n", string1, curr_line);
           psw->HAS_ERROR = 1;
@@ -136,11 +135,15 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
 
     else { /* case of direct addressing */
       operand1 = skip_white_space(operand1);
-      temp = string1;
-      while(isalnum(*operand1)) *temp++ = *operand1++; /* copy name of the array into string1 */
-      node = lookup(string1, table, is_init);
+      node = lookup(operand1, table, is_init);
       if (node != NULL) {
-        code[(*ic)++].operand = node->value;
+        if (node->type == DOT_EXT) {
+          code[*ic].ARE = EXTERNAL;
+        }
+        else { /* node type is DOT_DATA so it's relocateable */
+          code[*ic].ARE = RELOCATEABLE;
+        }
+        code[(*ic)++].operand = node->value; /* copy value */
       }
       else {
         printf("Error: label undefined, Line: %d\n", curr_line);
@@ -168,6 +171,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       operand2 = skip_white_space(operand2);
       temp = string1;
       while(*operand2 != '[') *temp++ = *operand2++; /* copy name of the array into string1 */
+      *temp = '\0';
       node = lookup(string1, table, is_init);
       if (node != NULL) {
         if (node->type == DOT_EXT) code[*ic].ARE = EXTERNAL;
@@ -182,6 +186,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       temp = string1; /* set temp to the start of string1 again */
       if (isdigit(*operand2)) { /* case of a number */
         while(*operand2 != ']') *temp++ = *operand2++; /* copy what's inside the brackets */
+        *temp = '\0';
         val1 = atoi(string1);
         /* atoi returns 0 upon failue, this if statement checks if atoi doen't fail or if the value of the number truly is 0 to avoid ambiguity */
         if (val1 != 0 || string1[0] == '0') {
@@ -195,6 +200,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
       }
       else { /* case of a macro */
         while(*operand2 != ']') *temp++ = *operand2++; /* copy what's inside the brackets */
+        *temp = '\0';
         if ((node = lookup(string1, table, is_init)) == NULL) { /* macro not in symbol table */
           printf("Error: macro undefined %s, Line: %d\n", string1, curr_line);
           psw->HAS_ERROR = 1;
@@ -230,7 +236,7 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw, 
   line = line_text;
   while (read_line(file, line) != EOF) { /* while the file isn't over */
     ++curr_line;
-
+    string1[0] = '\0'; string2[0] = '\0'; string3[0] = '\0'; /* reset strings */
     if (*line == ';') continue;
     if (has_label(line)) { /* if the line has a label skip it */
       line = skip_white_space(line); /* skip white space before label */
@@ -253,7 +259,9 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw, 
     line = get_command(line, string1); /* string1 now stores the name of the command */
     val1 = get_number_args(string1); /* val1 now stores the number of operands the command takes as input */
     line = get_operands(line, val1, string2, string3); /* string2 and string3 now contain the operands of the command */
+    printf("COMMAND: %s\nOP1: %s\nOP2: %s\n", string1, string2, string3);
     ++ic; /* skip the cell the command is encoded in */
+    printf("HERE: %d\n", val1);
     code_binary_operands(string2, string3, &ic, val1, curr_line, table, code, psw, is_init);
     }
     if (psw->HAS_ERROR == 1) return -1;

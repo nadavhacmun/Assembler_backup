@@ -71,12 +71,12 @@ Arguments:
 symbol_table *lookup(char *s, symbol_table hashtab[], int is_init[]) {
   symbol_table *np;
   int h = hash(s);
-  if (is_init[h] == 0) return NULL;
-  for (np = &hashtab[h]; np != NULL; np = np->next) {
-    if (!isalpha(np->name[0])) return NULL;
-    printf("%s\n", np->name);
-    printf("%s\n", s);
-    if (strcmp(s, np->name) == 0) return np; /* if found */
+  if (is_init[h] == 0) return NULL; /* no cells at that index */
+  else {
+    for (np = &hashtab[h]; np != NULL; np = np->next) {
+      if (!isalpha(np->name[0])) return NULL;
+      if (strcmp(s, np->name) == 0) return np; /* if found */
+    }
   }
 
   return NULL; /* if not found*/
@@ -97,14 +97,16 @@ symbol_table *install(char *name, int value, unsigned int type, symbol_table has
   symbol_table *np;
   unsigned int hashval;
   if ((np = lookup(name, hashtab, is_init)) == NULL) {
-      np = (symbol_table *) malloc(sizeof(*np));
+      np = (symbol_table *) malloc(sizeof(symbol_table));
       if (np == NULL) return NULL; /* if no memory can be allocated */
       hashval = hash(name);
       if (is_init[hashval]) {
         if (init_symbol(np, name, value, type, &hashtab[hashval]) == -1) return NULL;
+        printf("%s\n%d\n%d\n", np->name, np->value, np->type);
       }
       else {
         if (init_symbol(np, name, value, type, NULL) == -1) return NULL;
+        is_init[hashval] = 1;
       }
       hashtab[hashval] = *np;
 
