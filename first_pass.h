@@ -593,9 +593,9 @@ Returns:
 */
 int get_operand_type(char *operand, symbol_table table[], int is_init[]) {
   if(is_register(operand) == 1) return REGISTER;
-  if(is_direct(operand, table, is_init) == 1) return DIRECT;
+  if(is_instant(operand, table, is_init) == 1) return INSTANT;
   if(is_const_idx(operand) == 1) return CONST_IDX;
-  return INSTANT;
+  return DIRECT;
 }
 
 /*
