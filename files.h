@@ -58,7 +58,7 @@ int has_ent_in_symbol_table(symbol_table table[]) {
 
 void make_ent_file(char *name, symbol_table table[], int is_init[]) {
   int i;
-  symbol_table curr;
+  symbol_table *curr;
   char file_name[MAX_STRING_LEN];
   FILE *f;
 
@@ -68,17 +68,17 @@ void make_ent_file(char *name, symbol_table table[], int is_init[]) {
   if (has_ext_in_symbol_table(table)) { /* case when we need to build a file */
     for (i = 0; i < HASHSIZE; i++) {
       if (is_init[i] == 1) {
-        curr = table[i];
-        while (curr.next != NULL) {
-          if (curr.type == DOT_EXT) {
-            fprintf(f, curr.name);
+        curr = &table[i];
+        while (curr != NULL) {
+          if (curr->type == DOT_ENTRY) {
+            fprintf(f, "%s", curr->name);
             fprintf(f, " ");
-            if (curr.value < 1000) { /* print an extra 0 so it's in the same pattern as other lines */
+            if (curr->value < 1000) { /* print an extra 0 so it's in the same pattern as other lines */
               fprintf(f, "0");
             }
-            fprintf(f, "%d", curr.value);
+            fprintf(f, "%d\n", curr->value);
           }
-          curr = *curr.next;
+          curr = curr->next;
         }
       }
   }
