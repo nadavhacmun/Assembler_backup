@@ -233,9 +233,10 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw, 
   char line_text[MAX_STRING_LEN], string1[MAX_STRING_LEN], string2[MAX_STRING_LEN], string3[MAX_STRING_LEN], *line;
   symbol_table *node;
 
-  line = line_text;
-  while (read_line(file, line) != EOF) { /* while the file isn't over */
+  while (read_line(file, line_text) != EOF) { /* while the file isn't over */
+    line = line_text;
     ++curr_line;
+    printf("%s\n", line);
     string1[0] = '\0'; string2[0] = '\0'; string3[0] = '\0'; /* reset strings */
     if (*line == ';') continue;
     if (has_label(line)) { /* if the line has a label skip it */
@@ -259,9 +260,8 @@ int second_pass(FILE *file, symbol_table table[], code_memory code[], PSW *psw, 
     line = get_command(line, string1); /* string1 now stores the name of the command */
     val1 = get_number_args(string1); /* val1 now stores the number of operands the command takes as input */
     line = get_operands(line, val1, string2, string3); /* string2 and string3 now contain the operands of the command */
-    printf("COMMAND: %s\nOP1: %s\nOP2: %s\n", string1, string2, string3);
     ++ic; /* skip the cell the command is encoded in */
-    printf("HERE: %d\n", val1);
+    printf("%s\n%s\n%s\n", string1, string2, string3);
     code_binary_operands(string2, string3, &ic, val1, curr_line, table, code, psw, is_init);
     }
     if (psw->HAS_ERROR == 1) return -1;

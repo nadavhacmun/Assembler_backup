@@ -503,6 +503,7 @@ char *get_operands(char *line, int num_args, char *op1, char *op2) {
     line = skip_white_space(line);
     if (*line == '#') {
       ++line; /* skip the '#' */
+      *op1++ = '#';
       if (isalpha(*line)) { /* case of a macro */
         while(isalpha(*line)) {
           *op1++ = *line++;
@@ -527,6 +528,7 @@ char *get_operands(char *line, int num_args, char *op1, char *op2) {
     line = skip_white_space(line);
     if (*line == '#') {
       ++line; /* skip the '#' */
+      *op1++ = '#';
       if (isalpha(*line)) { /* case of a macro */
         while(isalpha(*line)) {
           *op1++ = *line++;
@@ -541,7 +543,7 @@ char *get_operands(char *line, int num_args, char *op1, char *op2) {
       }
     }
     else {
-      while(isalnum(*line) || *line == '[' || *line == ']' || *line == '#') {
+      while(isalnum(*line) || *line == '[' || *line == ']') {
         *op1++ = *line++; /* copy argument */
       }
       *op1 = '\0';
@@ -551,6 +553,7 @@ char *get_operands(char *line, int num_args, char *op1, char *op2) {
     line = skip_white_space(line); /* skip white space between ',' and argument */
     if (*line == '#') {
       ++line; /* skip the '#' */
+      *op2++ = '#';
       if (isalpha(*line)) { /* case of a macro */
         while(isalpha(*line)) {
           *op2++ = *line++;

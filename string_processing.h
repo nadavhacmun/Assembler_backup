@@ -62,6 +62,20 @@ char *get_word(char *line, char *word) {
 }
 
 /*
+my version of strcmp that only checks for equality, normal version overwrote other stuff for some weird reason
+*/
+int strcmp_(char *s1, char *s2) {
+    while(*s1 == *s2) {
+        if (*s1 == '\0' || *s2 == '\0') break;
+        s1++;
+        s2++;
+    }
+    if (*s1 == '\0' && *s2 == '\0') return 0;
+
+    return -1;
+}
+
+/*
 takes the name of the command and returns the number of operands it has
 
 Arguments:
@@ -72,18 +86,23 @@ Returns:
 	-1 if command is invalid
 */
 int get_number_args(char *name) {
-	/* big if case that tests all two opernad commands*/
-	if (strcmp(name, "mov") == 0 || strcmp(name, "cmp") == 0 || strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 || strcmp(name, "lea") == 0) {
-		return 2;
-	}
-	/* big if case that tests all one operand commands*/
-	if (strcmp(name, "not") == 0 || strcmp(name, "clr") == 0 || strcmp(name, "inc") == 0 || strcmp(name, "dec") == 0 || strcmp(name, "jmp") == 0 || strcmp(name, "bne") == 0 || strcmp(name, "red") == 0 || strcmp(name, "prn") == 0 || strcmp(name, "jsr") == 0) {
-		return 1;
-	}
-	/* if case that tests all zero opernad commands */
-	if (strcmp(name, "rts") == 0 || strcmp(name, "stop") == 0) {
-		return 0;
-	}
+	if (strcmp_(name, "mov") == 0) return 2;
+	else if (strcmp_(name, "cmp") == 0) return 2;
+	else if (strcmp_(name, "add") == 0) return 2;
+	else if (strcmp_(name, "sub") == 0) return 2;
+	else if (strcmp_(name, "lea") == 0) return 2;
+	else if (strcmp_(name, "not") == 0) return 1;
+	else if (strcmp_(name, "clr") == 0) return 1;
+	else if (strcmp_(name, "inc") == 0) return 1;
+	else if (strcmp_(name, "dec") == 0) return 1;
+	else if (strcmp_(name, "jmp") == 0) return 1;
+	else if (strcmp_(name, "bne") == 0) return 1;
+	else if (strcmp_(name, "red") == 0) return 1;
+	else if (strcmp_(name, "prn") == 0) return 1;
+	else if (strcmp_(name, "jsr") == 0) return 1;
+	else if (strcmp_(name, "rts") == 0) return 0;
+	else if (strcmp_(name, "stop") == 0) return 0;
+
 
 	return -1; /* if it's not the name of a valid command */
 }

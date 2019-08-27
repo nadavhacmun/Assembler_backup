@@ -102,7 +102,6 @@ symbol_table *install(char *name, int value, unsigned int type, symbol_table has
       hashval = hash(name);
       if (is_init[hashval]) {
         if (init_symbol(np, name, value, type, &hashtab[hashval]) == -1) return NULL;
-        printf("%s\n%d\n%d\n", np->name, np->value, np->type);
       }
       else {
         if (init_symbol(np, name, value, type, NULL) == -1) return NULL;
