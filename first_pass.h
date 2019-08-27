@@ -332,7 +332,7 @@ char *get_extern_arg(char *line, char *arg) {
   while (*line == '.' || isalpha(*line)) line++; /* skip the .extern part */
   line = skip_white_space(line); /* skip white space between .extern part the argument */
 
-  while(isalpha(*line)) { /* while the argument isn't over */
+  while(isalnum(*line)) { /* while the argument isn't over */
     *arg++ = *line++; /* copy current letter and increment */
   }
   *arg = '\0'; /* end of string */
