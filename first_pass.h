@@ -425,12 +425,8 @@ Returns:
   1 - type isn't instant addressing
 */
 int is_instant(char *arg, symbol_table table[], int is_init[]) {
-  symbol_table *node;
-
+  arg = skip_white_space(arg);
   if (*arg == '#') return 1; /* instant addressing starts like this or is a macro */
-  if ((node = lookup(arg, table, is_init)) != NULL) { /* if node isn't null check it's a macro */
-    if (node->type == DOT_MACRO) return 1; /* if it's a macro */
-  }
   return 0;
 }
 

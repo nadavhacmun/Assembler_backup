@@ -23,9 +23,11 @@ get integer value of instant operand
 Arguments:
   operand - pointer to the text of the operand
 */
-int get_instant_value(char *operand) {
+int get_instant_value(char *operand, symbol_table table[],int is_init[]) {
   int sign = 1;
   char num_text[MAX_STRING_LEN], *temp;
+  symbol_table *node;
+
   temp = num_text;
   operand = skip_white_space(operand); /* skip white space before start of operand */
   ++operand; /* skip the "#" */
@@ -33,7 +35,13 @@ int get_instant_value(char *operand) {
     if (*operand == '-') sign = -1;
     ++operand;
   }
-  while(isdigit(*operand)) *temp++ = *operand++;
+  if (isdigit(*operand)) { /* literal number */
+    while(isdigit(*operand)) *temp++ = *operand++;
+  }
+  else { /* macro */
+    node = lookup(operand, table, is_init);
+    return node->value;
+  }
   *temp = '\0';
 
   return atoi(num_text) * sign;
@@ -93,7 +101,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
     }
     else if (is_instant(operand1, table, is_init)) {
       code[*ic].ARE = ABSOLUTE;
-      val1 = get_instant_value(operand1);
+      val1 = get_instant_value(operand1, table, is_init);
       if (val1 >= 0) {
         code[(*ic)++].operand = val1;
       }
@@ -168,7 +176,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
     }
     else if (is_instant(operand2, table, is_init)) {
       code[*ic].ARE = ABSOLUTE;
-      val1 = get_instant_value(operand1);
+      val1 = get_instant_value(operand2, table, is_init);
       if (val1 >= 0) {
         code[(*ic)++].operand = val1;
       }
