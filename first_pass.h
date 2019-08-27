@@ -248,7 +248,6 @@ char *get_number_data(char *line, data_memory data[], int *dc, symbol_table tabl
 
   line = skip_white_space(line); /* skip white space before '.data' */
   while (isalpha(*line) || *line == '.') line++; /* skip the '.data' part of the line */
-
   while (*line != '\0') {
     temp = number_text;
     sign = 1;
@@ -272,7 +271,7 @@ char *get_number_data(char *line, data_memory data[], int *dc, symbol_table tabl
         *temp++ = *line++; /* copy name of macro */
       }
       *temp = '\0'; /* signal end of string */
-      node = lookup(temp, table, is_init);
+      node = lookup(number_text, table, is_init);
       if (node == NULL) return NULL; /* macro not found */
       if (node->type != DOT_MACRO) return NULL; /* not a macro */
       data[(*dc)++].data = node->value; /* copy the value of the macro into data */
@@ -291,6 +290,7 @@ char *get_number_data(char *line, data_memory data[], int *dc, symbol_table tabl
         data[(*dc)++].data = num;
       }
     }
+    need_comma = 1;
   }
   return line;
 }

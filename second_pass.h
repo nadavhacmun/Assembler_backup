@@ -79,7 +79,12 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
   if (num_operands >= 1) { /* 1 operand */
     if (is_register(operand1)) {
       code[*ic].ARE = ABSOLUTE;
-      code[(*ic)++].operand |= (get_register_number(operand1)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
+      if (num_operands == 1) { /* case when this is a dest operand */
+        code[(*ic)++].operand |= (get_register_number(operand1)); /* we don't slide since the .operand part of the code cell starts at bit 2 */
+      }
+      else { /* case when this is a source operand */
+        code[(*ic)++].operand |= (get_register_number(operand1)) << 3; /* we slide by 3 to get to where the dest operand num is encoded */
+      }
     }
     else if (is_instant(operand1, table, is_init)) {
       code[*ic].ARE = ABSOLUTE;
@@ -154,7 +159,7 @@ void code_binary_operands(char *operand1, char *operand2,int *ic, int num_operan
   if(num_operands >= 2) { /* 2 operands, this does exctly the same as done in the previous if to the second operand */
     if (is_register(operand2)) {
       code[*ic].ARE = ABSOLUTE;
-      code[(*ic)++].operand |= (get_register_number(operand2)) << 5; /* we slide by 5 to get to where the source operand num is encoded */
+      code[(*ic)++].operand |= (get_register_number(operand2)); /* we don't slide since the .operand parts starts at bit 2 */
     }
     else if (is_instant(operand2, table, is_init)) {
       code[*ic].ARE = ABSOLUTE;
