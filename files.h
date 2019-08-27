@@ -165,7 +165,7 @@ void make_ob_file(char *name, code_memory code[], data_memory data[], int ic, in
       if (i < 1000) { /* print an extra 0 to address (at start) */
         fprintf(f, "0");
       }
-      fprintf(f, "%d ", i); /* print address and space */
+      fprintf(f, "%d ", i + STARTING_INDEX_CODE); /* print address and space */
       write_operand(&code[i], f); /* write data part of operand to file */
       fprintf(f, "%c\n", get_special_base_4(code[i].ARE)); /* write ARE part of operand to file */
     }
@@ -174,7 +174,7 @@ void make_ob_file(char *name, code_memory code[], data_memory data[], int ic, in
       if (i < 1000) { /* print an extra 0 to address (at start) */
         fprintf(f, "0");
       }
-      fprintf(f, "%d ", i); /* print address */
+      fprintf(f, "%d ", i + STARTING_INDEX_CODE); /* print address */
       fprintf(f, "**"); /* write unused bits to file */
       write_opcode(&code[i], f);
       fprintf(f, "%c", get_special_base_4(code[i].source_op)); /* write source operand addressing type to file */
@@ -186,7 +186,7 @@ void make_ob_file(char *name, code_memory code[], data_memory data[], int ic, in
     if (ic + i < 1000)  { /* if line number is less then 1000 add another 0 to fit the format */
       fprintf(f, "0");
     }
-    fprintf(f, "%d ", i + ic); /* print address */
+    fprintf(f, "%d ", i + ic + STARTING_INDEX_CODE); /* print address */
     write_data(&data[i], f);
     fprintf(f, "\n");
   }
